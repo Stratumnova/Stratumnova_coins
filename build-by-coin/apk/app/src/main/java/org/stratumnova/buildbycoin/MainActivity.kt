@@ -6,14 +6,14 @@ import android.content.Intent
 import android.widget.*
 import org.stratumnova.buildbycoin.intake.IntakeScanner
 import org.stratumnova.buildbycoin.workspace.WorkspaceStore
-import org.stratumnova.buildbycoin.coin.CoinInspector\nimport org.stratumnova.buildbycoin.runtime.GameView
+import org.stratumnova.buildbycoin.coin.CoinInspector\nimport org.stratumnova.buildbycoin.runtime.GameView\nimport org.stratumnova.buildbycoin.test.TestPanel
 class MainActivity:Activity(){
  private lateinit var terminal:TextView;private lateinit var store:WorkspaceStore
  private val OPEN_FILE=1001;private val OPEN_ZIP=1002;private val OPEN_ASSET=1003
  override fun onCreate(state:Bundle?){super.onCreate(state);store=WorkspaceStore(this);val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
  fun label(t:String,s:Float=16f)=TextView(this).apply{text=t;textSize=s;setTextColor(Color.WHITE);setPadding(8,8,8,8)}
  root.addView(label("BUILD BY COIN",24f));root.addView(label("COIN TESTING & GAME BUILDER",12f));val tabs=LinearLayout(this)
- listOf("Terminal","Files","Assets","Build","Run").forEach{n->tabs.addView(Button(this).apply{text=n;setOnClickListener{if(n=="Files")showFiles() else if(n=="Run")setContentView(GameView(this@MainActivity))}})};root.addView(tabs)
+ listOf("Terminal","Files","Assets","Build","Run").forEach{n->tabs.addView(Button(this).apply{text=n;setOnClickListener{if(n=="Files")showFiles() else if(n=="Run")TestPanel.show(this@MainActivity)}})};root.addView(tabs)
  terminal=label("> Welcome to Build by Coin\n> Ready for intake\n> Runtime: v0.1.0\n> Originals remain untouched.",15f);root.addView(terminal,LinearLayout.LayoutParams(-1,0,1f));root.addView(label("INTAKE",18f));val intake=LinearLayout(this)
  fun b(n:String,c:Int,t:String)=Button(this).apply{text=n;setOnClickListener{pick(c,t)}};intake.addView(b("FILE",OPEN_FILE,"*/*"),LinearLayout.LayoutParams(0,-2,1f));intake.addView(b("ZIP",OPEN_ZIP,"application/zip"),LinearLayout.LayoutParams(0,-2,1f));intake.addView(b("ASSET",OPEN_ASSET,"*/*"),LinearLayout.LayoutParams(0,-2,1f));root.addView(intake);root.addView(label("Single files for quick intake; ZIP for cartridges and large sets.",14f));setContentView(root)}
  private fun pick(c:Int,t:String)=startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply{addCategory(Intent.CATEGORY_OPENABLE);type=t},c)

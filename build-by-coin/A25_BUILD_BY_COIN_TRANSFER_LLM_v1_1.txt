@@ -1,0 +1,80 @@
+A25 STRATUMNOVA COIN REPOSITORY — 1:1 TRANSFER SCRIPT v1.1
+Operator identity: ArchitectZero
+Mode: LOSSLESS CONTAINER TRANSFER
+Authority: Supplied files are already tested and approved.
+
+PURPOSE
+Transfer the approved A25 corpus into Stratumnova_coins without changing file contents.
+One master Coin ID is one permanent artifact-lineage container.
+
+HARD RULES
+- 1:1 transfer. Do not rewrite, normalize, reformat, rename content, reorder JSON,
+  change hashes/bytes/status/classification, resolve unknown/unresolved, or invent facts.
+- If something appears wrong, preserve it and report the discrepancy.
+- New empty expected fields fall back to unresolved unless the schema explicitly says otherwise.
+- Existing unknown values remain unchanged during transfer.
+- Transfer is not the testing/enrichment phase.
+
+CONTAINER RULE
+Store each coin as one portable group:
+  <collection>/coins/<COIN-ID>/
+      <master coin JSON>
+      <baseline/original artifact>
+      <render TXT>
+      PDFs/
+      versions/       [only when later revisions actually exist]
+
+Do not split a coin's related files into global coins/, artifacts/, and render_txt/ folders.
+
+VERSION RULE
+- Master Coin ID = permanent artifact identity.
+- Existing supplied artifact = baseline/original version; do not invent older history.
+- Revision of the same artifact goes sideways under versions/ and receives a version coin.
+- A version coin records exact SHA/bytes/change/test/dependency/parent-version facts.
+- A genuinely new artifact identity receives a new master Coin ID.
+- Historical version artifacts are immutable.
+
+ROUTING
+PUBLIC: all approved public coins remain here.
+WEBSITES: copy website-classified coins here while preserving their Public originals.
+           Website currently equals the puzzle-special subset.
+BUILD-BY-COIN: copy non-website public coins here for later testing/resolution.
+SAMPLES: public/samples/; samples do not increase authoritative corpus counts.
+PDFS: collection-wide PDFs go in <collection>/PDFs/.
+      coin-specific PDFs go in <collection>/coins/<COIN-ID>/PDFs/.
+
+BATCH TRACKER
+Maintain exactly:
+LAST: most recently completed and verified range.
+CURRENT: range being transferred now.
+NEXT: immediately following expected range.
+
+Before CURRENT: verify LAST, expected range, no overlap, no silent numbering gap.
+After CURRENT: verify source/destination counts, filenames, byte identity/hash where available,
+routing, and container placement. Only then advance LAST/CURRENT/NEXT.
+
+RESPONSE FORMAT
+A25 TRANSFER
+LAST:    [range] — VERIFIED
+CURRENT: [range] — [TRANSFERRED / VERIFYING / BLOCKED]
+NEXT:    [range]
+
+PUBLIC:        [coin/file count]
+WEBSITES:      [coin/file count]
+BUILD-BY-COIN: [coin/file count]
+SAMPLES:       [count if applicable]
+
+1:1 CHECK: [PASS / FAIL]
+CONTAINER CHECK: [PASS / FAIL]
+EXCEPTIONS: [NONE or exact discrepancy]
+
+FAILURE
+Do not silently continue past missing, duplicate, changed, conflicting, unexpected,
+or unverifiable items. Report source, destination, expected, found, and ACTION TAKEN: NONE.
+
+PRIMARY PRINCIPLE
+ONE COIN = ONE PERMANENT CONTAINER.
+COPY EXACTLY.
+VERIFY.
+VERSION SIDEWAYS FOR REVISIONS.
+DO NOT INVENT INFORMATION.

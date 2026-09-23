@@ -1,0 +1,2 @@
+package org.stratumnova.buildbycoin.runtime
+class SeededRng(seed:Long){private var state=seed;fun nextInt(bound:Int):Int{require(bound>0);state=state*6364136223846793005L+1442695040888963407L;return ((state ushr 33)%bound.toLong()).toInt()};fun stateValue():Long=state}

@@ -67,7 +67,7 @@ private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
  box.addView(row("CATEGORY",x.category));box.addView(row("DOMAIN",x.domain));box.addView(row("ROLE",x.role))
  box.addView(row("ARTIFACT SHA-256",x.sha256));box.addView(row("ARTIFACT BYTES",x.bytes.toString()))
  box.addView(row("COIN FILE",file.name))
- box.addView(row("PROVIDES","UNRESOLVED"));box.addView(row("REQUIRES","UNRESOLVED"))
+ box.addView(row("PROVIDES",x.provides));box.addView(row("REQUIRES",x.requires))
  setContentView(ScrollView(this).apply{addView(box)})
 }
  private fun showExport(){val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL};box.addView(Button(this).apply{text="← BACK";setOnClickListener{showMain()}});box.addView(Button(this).apply{text="PROJECT ZIP";setOnClickListener{startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).apply{addCategory(Intent.CATEGORY_OPENABLE);type="application/zip";putExtra(Intent.EXTRA_TITLE,"BuildByCoin_Project.zip")},SAVE_ZIP)}});val files=store.listOriginals();files.take(30).forEach{file->box.addView(Button(this).apply{text="FILE: "+file.name;setOnClickListener{pendingExport=file;startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).apply{addCategory(Intent.CATEGORY_OPENABLE);type="application/octet-stream";putExtra(Intent.EXTRA_TITLE,file.name)},SAVE_FILE)}})};setContentView(ScrollView(this).apply{addView(box)})}

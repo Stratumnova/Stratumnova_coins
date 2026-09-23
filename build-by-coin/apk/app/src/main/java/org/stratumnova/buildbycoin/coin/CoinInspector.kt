@@ -1,0 +1,5 @@
+package org.stratumnova.buildbycoin.coin
+import org.json.JSONObject
+import java.io.File
+data class CoinSummary(val coinId:String,val name:String,val category:String,val role:String,val domain:String,val sha256:String,val bytes:Long)
+object CoinInspector{fun inspect(file:File):CoinSummary?{if(!file.name.endsWith(".coin.json"))return null;return try{val j=JSONObject(file.readText());val cur=j.optJSONObject("current");val c=j.optJSONObject("classification");CoinSummary(j.optString("coin_id","UNRESOLVED"),cur?.optString("name","UNRESOLVED")?:"UNRESOLVED",c?.optString("category","UNRESOLVED")?:"UNRESOLVED",c?.optString("role","UNRESOLVED")?:"UNRESOLVED",c?.optString("domain","UNRESOLVED")?:"UNRESOLVED",cur?.optString("sha256","UNRESOLVED")?:"UNRESOLVED",cur?.optLong("bytes",-1)?:-1)}catch(_:Exception){null}}}

@@ -15,19 +15,76 @@
     "nonBaseUsesExistingContainerRules": true
   },
   "workers": {
-    "NPC_SCAVENGER": {"capacity":18,"jobKinds":["SOURCE","DELIVER","SCOUT"],"workDays":2},
-    "NPC_MINER": {"capacity":16,"jobKinds":["SOURCE","PRODUCE","DELIVER"],"workDays":3},
-    "NPC_RUNNER": {"capacity":10,"jobKinds":["DELIVER","SCOUT"],"workDays":1},
-    "PLAYER": {"capacity":99,"jobKinds":["SOURCE","PRODUCE","DELIVER","REPAIR","CONSERVE","SCOUT"],"workDays":1}
+    "NPC_SCAVENGER": {
+      "capacity": 18,
+      "jobKinds": [
+        "SOURCE",
+        "DELIVER",
+        "SCOUT"
+      ],
+      "workDays": 2
+    },
+    "NPC_MINER": {
+      "capacity": 16,
+      "jobKinds": [
+        "SOURCE",
+        "PRODUCE",
+        "DELIVER"
+      ],
+      "workDays": 3
+    },
+    "NPC_RUNNER": {
+      "capacity": 10,
+      "jobKinds": [
+        "DELIVER",
+        "SCOUT"
+      ],
+      "workDays": 1
+    },
+    "PLAYER": {
+      "capacity": 99,
+      "jobKinds": [
+        "SOURCE",
+        "PRODUCE",
+        "DELIVER",
+        "REPAIR",
+        "CONSERVE",
+        "SCOUT"
+      ],
+      "workDays": 1
+    }
   },
   "sources": {
-    "COPPER_WIRE":{"reserve":220,"regenPerDay":0.2},
-    "SCRAP_STEEL":{"reserve":380,"regenPerDay":0.35},
-    "FIELD_COIL":{"reserve":180,"regenPerDay":0.12},
-    "BIO_RESIN":{"reserve":260,"regenPerDay":0.45},
-    "SENSOR_GLASS":{"reserve":100,"regenPerDay":0.05}
+    "COPPER_WIRE": {
+      "reserve": 220,
+      "regenPerDay": 0.2
+    },
+    "SCRAP_STEEL": {
+      "reserve": 380,
+      "regenPerDay": 0.35
+    },
+    "FIELD_COIL": {
+      "reserve": 180,
+      "regenPerDay": 0.12
+    },
+    "BIO_RESIN": {
+      "reserve": 260,
+      "regenPerDay": 0.45
+    },
+    "SENSOR_GLASS": {
+      "reserve": 100,
+      "regenPerDay": 0.05
+    }
   },
-  "job":{"npcAcceptanceBase":0.72,"maxActivePerWorker":1,"marketPaysPerUnit":1,"failIfSourceEmpty":true},
-  "playerParticipation":{"enabled":true,"acceptEveryDays":13},
+  "job": {
+    "npcAcceptanceBase": 0.72,
+    "maxActivePerWorker": 1,
+    "marketPaysPerUnit": 1,
+    "failIfSourceEmpty": true
+  },
+  "playerParticipation": {
+    "enabled": true,
+    "acceptEveryDays": 13
+  },
   "allValuesTunable": true
 }

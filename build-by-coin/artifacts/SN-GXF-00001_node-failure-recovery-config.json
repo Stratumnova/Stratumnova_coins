@@ -1,0 +1,50 @@
+{
+  "schema": "SC01_NODE_FAILURE_RECOVERY_CONFIG_V1",
+  "balanceStatus": "TEST_BASELINE_ALL_VALUES_TUNABLE",
+  "nodeRules": {
+    "base": {
+      "normalActive": 5,
+      "criticalAtOrBelow": 2,
+      "degradedBelow": 5
+    },
+    "farm": {
+      "normalActive": 5,
+      "physicalCapacity": 6,
+      "criticalAtOrBelow": 2
+    },
+    "market": {
+      "normalActive": 3,
+      "physicalCapcity": 3,
+      "criticalAtOrBelow": 1
+    },
+    "failureReducesExtraction": true,
+    "activationIsNotDemandThrottle": true
+  },
+  "repair": {
+    "eligibleActors": [
+      "WASTELAND_BROTHER_A",
+      "WASTELAND_BROTHER_B",
+      "PLAYER"
+    ],
+    "requiresPrinterSeed": true,
+    "requiresNodeExtract": true,
+    "printerSeedPerNode": 1,
+    "nodeExtractPerNode": 1,
+    "repairDays": 2,
+    "valuesArePolicyNotInvariant": true
+  },
+  "test": {
+    "days": 365,
+    "forcedFailures": [
+      40,
+      41,
+      42,
+      160,
+      161,
+      260
+    ],
+    "playerHelpsEvery": 29
+  },
+  "allValuesTunable": true,
+  "policyNote": "Node counts, critical thresholds, expansion capacity, repair costs and repair timing are adjustable balance policy. The invariant is that failed nodes reduce real capacity and recovery requires the configured physical recovery contract rather than a demand toggle."
+}

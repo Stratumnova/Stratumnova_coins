@@ -1,0 +1,181 @@
+{
+  "schema": "zedsplaything.public.coin.v1",
+  "coin_view": "public",
+  "coin_id": "SN-GXF-00001",
+  "current": {
+    "name": "SN-GXF-00001_node-failure-recovery-config.json",
+    "sha256": "09ccfbd0d78d5e57bac64fcbeef8d1aa2bccbbde384ca2963b56dae4615d8034",
+    "bytes": 1296
+  },
+  "classification": {
+    "type": "G",
+    "domain": "X",
+    "role": "F",
+    "category": "config-runtime-persistence"
+  },
+  "summary": {
+    "title": "Node Failure Recovery Config",
+    "plain_language": null,
+    "purpose": null,
+    "best_for": [],
+    "basis": "filename-only"
+  },
+  "lineage": {
+    "variant_of": null,
+    "revision_of": null
+  },
+  "evidence": {
+    "status": "RECOVERED_NOT_RETESTED",
+    "functional_test_status": "TEST-NOT-APPLICABLE",
+    "tested_with": [],
+    "known_limits": [],
+    "notes": []
+  },
+  "build_by_coin": {
+    "semantic_flags": {
+      "status": "known",
+      "items": [
+        {
+          "value": "schema",
+          "basis": "artifact-inspection"
+        },
+        {
+          "value": "balanceStatus",
+          "basis": "artifact-inspection"
+        },
+        {
+          "value": "nodeRules",
+          "basis": "artifact-inspection"
+        },
+        {
+          "value": "repair",
+          "basis": "artifact-inspection"
+        },
+        {
+          "value": "test",
+          "basis": "artifact-inspection"
+        },
+        {
+          "value": "allValuesTunable",
+          "basis": "artifact-inspection"
+        },
+        {
+          "value": "policyNote",
+          "basis": "artifact-inspection"
+        }
+      ]
+    },
+    "provides": {
+      "status": "unknown",
+      "items": []
+    },
+    "requires": {
+      "status": "unknown",
+      "items": []
+    },
+    "optional_dependencies": {
+      "status": "unknown",
+      "items": []
+    },
+    "relationships": {
+      "status": "unknown",
+      "items": []
+    },
+    "uses": {
+      "status": "unknown",
+      "items": []
+    },
+    "compatible_with": {
+      "status": "unknown",
+      "items": []
+    },
+    "conflicts_with": {
+      "status": "unknown",
+      "items": []
+    },
+    "mechanic_traits": {
+      "status": "unknown",
+      "items": []
+    },
+    "project_traits": {
+      "status": "unknown",
+      "items": []
+    },
+    "tunable": {
+      "status": "partial",
+      "items": [
+        {
+          "key": "schema",
+          "default": "SC01_NODE_FAILURE_RECOVERY_CONFIG_V1",
+          "basis": "artifact-inspection"
+        },
+        {
+          "key": "balanceStatus",
+          "default": "TEST_BASELINE_ALL_VALUES_TUNABLE",
+          "basis": "artifact-inspection"
+        },
+        {
+          "key": "allValuesTunable",
+          "default": true,
+          "basis": "artifact-inspection"
+        },
+        {
+          "key": "policyNote",
+          "default": "Node counts, critical thresholds, expansion capacity, repair costs and repair timing are adjustable balance policy. The invariant is that failed nodes reduce real capacity and recovery requires the configured physical recovery contract rather than a demand toggle.",
+          "basis": "artifact-inspection"
+        }
+      ]
+    }
+  },
+  "website": {
+    "loadable": false,
+    "previewable": false,
+    "tunable": false,
+    "testable": false,
+    "entrypoint": null,
+    "adapter": null,
+    "supported_workbenches": []
+  },
+  "controls": [],
+  "visual_class": {
+    "template_id": "A25_PUBLIC_ARTIFACT_COIN_V1",
+    "render_profile": "A25_PUBLIC_ARTIFACT_COIN_RENDERER_V1",
+    "filetype": ".JSON",
+    "file_category": "DATA",
+    "color_family": "AMBER_ORANGE",
+    "crystal_color": "#FFAA00",
+    "serial_display": "00001",
+    "sha_display": "09ccfb",
+    "map_zones": {
+      "map_01": {
+        "label": "PROVIDES",
+        "status": "unknown",
+        "value": "UNKNOWN"
+      },
+      "map_02": {
+        "label": "REQUIRES",
+        "status": "unknown",
+        "value": "UNKNOWN"
+      },
+      "map_03": {
+        "label": "TUNABLE",
+        "status": "partial",
+        "value": "4"
+      }
+    },
+    "render_status": "INSTRUCTION_READY",
+    "render_instruction": "render_txt/SN-GXF-00001_coin.txt",
+    "expected_png": "visuals/SN-GXF-00001_coin.png"
+  },
+  "public_audit": {
+    "artifact_integrity": "PASS",
+    "audit_verification": "AUDIT-VERIFIED",
+    "functional_test_status": "TEST-NOT-APPLICABLE",
+    "errors": [],
+    "error_policy": {
+      "ERR-MISSING": "Information is not currently established.",
+      "ERR-INCOMPLETE": "Available information does not support a complete value.",
+      "ERR-UNSURE": "Available evidence does not support a confident value."
+    }
+  }
+}

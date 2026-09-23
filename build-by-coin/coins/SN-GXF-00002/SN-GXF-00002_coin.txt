@@ -1,0 +1,30 @@
+A25 ARTIFACT COIN RENDER DATA
+
+COIN: SN-GXF-00002
+OUTPUT PNG: SN-GXF-00002_coin.png
+
+FILE: SN-GXF-00002_autonomous-job-fulfillment-config.json
+FILETYPE: .JSON
+CATEGORY: DATA
+CRYSTAL COLOR: #FFAA00
+
+SERIAL: 00002
+SHA: 8a7182
+
+CLASS: G
+DOMAIN: X
+ROLE: F
+
+MAP-01 / PROVIDES: UNKNOWN
+MAP-01 STATUS: UNKNOWN
+MAP-02 / REQUIRES: UNKNOWN
+MAP-02 STATUS: UNKNOWN
+MAP-03 / TUNABLE: 4
+MAP-03 STATUS: PARTIAL
+
+SIDECAR STATUS: RECOVERED_NOT_RETESTED
+
+SOURCE OF TRUTH:
+Use the matching public Coin JSON for Build-by-Coin details.
+Do not invent missing values. UNKNOWN stays UNKNOWN.
+Use the approved A25 Artifact Coin visual reference for appearance.

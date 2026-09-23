@@ -1,0 +1,8 @@
+{
+  "schema": "build-by-coin.apk.sample-fixtures.v0.1",
+  "policy": "byte-for-byte A25 reference fixtures; never regenerate during APK build",
+  "source_archive": "A25_START_REFERENCE_4_COINS.zip",
+  "coin_ids": ["SN-IFM-00092","SN-CCM-00075","SN-GXF-00004","SN-CNK-01401"],
+  "expected_payload": ["coin_json","render_txt","coin_image"],
+  "status": "SOURCE_BYTES_PENDING_REPOSITORY_COPY"
+}

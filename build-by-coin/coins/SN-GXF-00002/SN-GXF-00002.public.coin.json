@@ -1,0 +1,99 @@
+{
+  "schema": "zedsplaything.public.coin.v1",
+  "coin_view": "public",
+  "coin_id": "SN-GXF-00002",
+  "current": {
+    "name": "SN-GXF-00002_autonomous-job-fulfillment-config.json",
+    "sha256": "8a71820db01a1ebc73ad662956f5d8163edc58c2a5db1813ea3fef5d76dfc5d5",
+    "bytes": 1703
+  },
+  "classification": {
+    "type": "G",
+    "domain": "X",
+    "role": "F",
+    "category": "config-runtime-persistence"
+  },
+  "summary": {
+    "title": "Autonomous Job Fulfillment Config",
+    "plain_language": null,
+    "purpose": null,
+    "best_for": [],
+    "basis": "filename-only"
+  },
+  "lineage": {
+    "variant_of": null,
+    "revision_of": null
+  },
+  "evidence": {
+    "status": "RECOVERED_NOT_RETESTED",
+    "functional_test_status": "TEST-NOT-APPLICABLE",
+    "tested_with": [],
+    "known_limits": [],
+    "notes": []
+  },
+  "build_by_coin": {
+    "semantic_flags": {
+      "status": "known",
+      "items": [
+        {"value":"schema","basis":"artifact-inspection"},
+        {"value":"balanceStatus","basis":"artifact-inspection"},
+        {"value":"days","basis":"artifact-inspection"},
+        {"value":"inventory","basis":"artifact-inspection"},
+        {"value":"workers","basis":"artifact-inspection"},
+        {"value":"sources","basis":"artifact-inspection"},
+        {"value":"job","basis":"artifact-inspection"},
+        {"value":"playerParticipation","basis":"artifact-inspection"},
+        {"value":"allValuesTunable","basis":"artifact-inspection"}
+      ]
+    },
+    "provides": {"status":"unknown","items":[]},
+    "requires": {"status":"unknown","items":[]},
+    "optional_dependencies": {"status":"unknown","items":[]},
+    "relationships": {"status":"unknown","items":[]},
+    "uses": {"status":"unknown","items":[]},
+    "compatible_with": {"status":"unknown","items":[]},
+    "conflicts_with": {"status":"unknown","items":[]},
+    "mechanic_traits": {"status":"unknown","items":[]},
+    "project_traits": {"status":"unknown","items":[]},
+    "tunable": {
+      "status":"partial",
+      "items":[
+        {"key":"schema","default":"SC01_AUTONOMOUS_JOB_FULFILLMENT_CONFIG_V1","basis":"artifact-inspection"},
+        {"key":"balanceStatus","default":"TEST_BASELINE_ALL_VALUES_TUNABLE","basis":"artifact-inspection"},
+        {"key":"days","default":365,"basis":"artifact-inspection"},
+        {"key":"allValuesTunable","default":true,"basis":"artifact-inspection"}
+      ]
+    }
+  },
+  "website": {"loadable":false,"previewable":false,"tunable":false,"testable":false,"entrypoint":null,"adapter":null,"supported_workbenches":[]},
+  "controls": [],
+  "visual_class": {
+    "template_id":"A25_PUBLIC_ARTIFACT_COIN_V1",
+    "render_profile":"A25_PUBLIC_ARTIFACT_COIN_RENDERER_V1",
+    "filetype":".JSON",
+    "file_category":"DATA",
+    "color_family":"AMBER_ORANGE",
+    "crystal_color":"#FFAA00",
+    "serial_display":"00002",
+    "sha_display":"8a7182",
+    "map_zones":{
+      "map_01":{"label":"PROVIDES","status":"unknown","value":"UNKNOWN"},
+      "map_02":{"label":"REQUIRES","status":"unknown","value":"UNKNOWN"},
+      "map_03":{"label":"TUNABLE","status":"partial","value":"4"}
+    },
+    "render_status":"INSTRUCTION_READY",
+    "render_instruction":"render_txt/SN-GXF-00002_coin.txt",
+    "expected_png":"visuals/SN-GXF-00002_coin.png"
+  },
+  "public_audit": {
+    "artifact_integrity":"PASS",
+    "audit_verification":"AUDIT-VERIFIED",
+    "functional_test_status":"TEST-NOT-APPLICABLE",
+    "errors":[],
+    "error_policy":{
+      "ERR-MISSING":"Information is not currently established.",
+      "ERR-INCOMPLETE":"Available information does not support a complete value.",
+      "ERR-UNSURE":"Available evidence does not support a confident value."
+    }
+  }
+}

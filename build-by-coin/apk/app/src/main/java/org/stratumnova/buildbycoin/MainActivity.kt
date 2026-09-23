@@ -19,7 +19,7 @@ class MainActivity:Activity(){
  override fun onCreate(state:Bundle?){super.onCreate(state);store=WorkspaceStore(this);val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
  fun label(t:String,s:Float=16f)=TextView(this).apply{text=t;textSize=s;setTextColor(Color.WHITE);setPadding(8,8,8,8)}
  root.addView(label("BUILD BY COIN",24f));root.addView(label("COIN TESTING & GAME BUILDER",12f));val tabs=LinearLayout(this)
- listOf("Terminal","Files","Assets","Build","Run","Export").forEach{n->tabs.addView(Button(this).apply{text=n;setOnClickListener{when(n){"Terminal"->showMain();"Files"->showFiles();"Assets"->showAssets();"Build"->showBuild();"Run"->TestPanel.show(this@MainActivity);"Export"->showExport()}}})};root.addView(tabs)
+ listOf("Terminal","Files","Assets","Build","Run","Export").forEach{n->tabs.addView(Button(this).apply{text=n;setOnClickListener{when(n){"Terminal"->showMain();"Files"->showFiles();"Assets"->showAssets();"Build"->showBuild();"Run"->TestPanel.show(this@MainActivity){showMain()};"Export"->showExport()}}})};root.addView(tabs)
  terminal=label("> Welcome to Build by Coin\n> Ready for intake\n> Runtime: v0.1.0\n> Originals remain untouched.",15f);root.addView(terminal,LinearLayout.LayoutParams(-1,0,1f));root.addView(label("INTAKE",18f));val intake=LinearLayout(this)
  fun b(n:String,c:Int,t:String):Button { return Button(this).apply { text=n; setOnClickListener { pick(c,t) } } }
  intake.addView(b("FILE",OPEN_FILE,"*/*"),LinearLayout.LayoutParams(0,-2,1f))

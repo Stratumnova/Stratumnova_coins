@@ -5,12 +5,17 @@ import android.widget.*
 import org.stratumnova.buildbycoin.runtime.*
 import java.io.File
 object TestPanel{
- fun show(a:Activity){
-  val runtime=RuntimeCore(25L,30);val root=LinearLayout(a).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
-  val status=TextView(a).apply{setTextColor(Color.WHITE);textSize=15f;text="Same RuntimeCore for PLAY / AUTO / WATCH"}
-  val game=GameView(a,runtime);root.addView(status);root.addView(game,LinearLayout.LayoutParams(-1,0,1f))
+ fun show(a:Activity,onBack:()->Unit){
+  val runtime=RuntimeCore(25L,30);val playInputs=mutableListOf<Command>();var playStart=runtime.stateHash()
+  val root=LinearLayout(a).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
+  val top=LinearLayout(a);top.addView(Button(a).apply{text="← BACK";setOnClickListener{onBack()}},LinearLayout.LayoutParams(0,-2,1f))
+  val status=TextView(a).apply{setTextColor(Color.WHITE);textSize=15f;text="PLAY / AUTO / WATCH — same RuntimeCore"};top.addView(status,LinearLayout.LayoutParams(0,-2,3f));root.addView(top)
+  val game=GameView(a,runtime);game.onCommand={cmd->playInputs+=cmd;status.text="PLAY | inputs "+playInputs.size+" | tick "+runtime.clock.tick};root.addView(game,LinearLayout.LayoutParams(-1,0,1f))
   val controls=LinearLayout(a)
-  fun add(name:String,mode:RunMode,commands:List<Command>){controls.addView(Button(a).apply{text=name;setOnClickListener{val run=TestHarness(runtime).run(mode,commands);val dir=EvidenceWriter.write(File(a.filesDir,"workspace/evidence"),run);game.invalidate();status.text=mode.name+" complete | events "+run.events.size+" | "+run.afterHash.take(12)+"\n"+dir.name}},LinearLayout.LayoutParams(0,-2,1f))}
-  add("PLAY",RunMode.PLAY,emptyList());add("AUTO",RunMode.AUTO,TestHarness.defaultScenario());add("WATCH",RunMode.WATCH,TestHarness.defaultScenario());root.addView(controls);a.setContentView(root)
+  controls.addView(Button(a).apply{text="PLAY";setOnClickListener{playInputs.clear();playStart=runtime.stateHash();status.text="PLAY armed — touch game to move"}},LinearLayout.LayoutParams(0,-2,1f))
+  controls.addView(Button(a).apply{text="SAVE";setOnClickListener{val r=TestRun(RunMode.PLAY,runtime.seed,runtime.tickRate,playInputs.map{it.name},playStart,runtime.stateHash(),runtime.bus.all());val d=EvidenceWriter.write(File(a.filesDir,"workspace/evidence"),r);status.text="PLAY saved | "+playInputs.size+" inputs | "+d.name}},LinearLayout.LayoutParams(0,-2,1f))
+  fun automated(mode:RunMode){val r=TestHarness(runtime).run(mode,TestHarness.defaultScenario());val d=EvidenceWriter.write(File(a.filesDir,"workspace/evidence"),r);game.invalidate();status.text=mode.name+" complete | events "+r.events.size+" | "+r.afterHash.take(12)+"\n"+d.name}
+  controls.addView(Button(a).apply{text="AUTO";setOnClickListener{automated(RunMode.AUTO)}},LinearLayout.LayoutParams(0,-2,1f))
+  controls.addView(Button(a).apply{text="WATCH";setOnClickListener{automated(RunMode.WATCH)}},LinearLayout.LayoutParams(0,-2,1f));root.addView(controls);a.setContentView(root)
  }
 }

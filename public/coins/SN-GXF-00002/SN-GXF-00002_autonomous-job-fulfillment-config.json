@@ -1,0 +1,33 @@
+{
+  "schema": "SC01_AUTONOMOUS_JOB_FULFILLMENT_CONFIG_V1",
+  "balanceStatus": "TEST_BASELINE_ALL_VALUES_TUNABLE",
+  "days": 365,
+  "inventory": {
+    "baseMaterials": [
+      "COPPER_WIRE",
+      "SCRAP_STEEL",
+      "FIELD_COIL",
+      "BIO_RESIN",
+      "SENSOR_GLASS"
+    ],
+    "npcBaseMaterialStackCap": null,
+    "playerBaseMaterialStackCap": 99,
+    "nonBaseUsesExistingContainerRules": true
+  },
+  "workers": {
+    "NPC_SCAVENGER": {"capacity":18,"jobKinds":["SOURCE","DELIVER","SCOUT"],"workDays":2},
+    "NPC_MINER": {"capacity":16,"jobKinds":["SOURCE","PRODUCE","DELIVER"],"workDays":3},
+    "NPC_RUNNER": {"capacity":10,"jobKinds":["DELIVER","SCOUT"],"workDays":1},
+    "PLAYER": {"capacity":99,"jobKinds":["SOURCE","PRODUCE","DELIVER","REPAIR","CONSERVE","SCOUT"],"workDays":1}
+  },
+  "sources": {
+    "COPPER_WIRE":{"reserve":220,"regenPerDay":0.2},
+    "SCRAP_STEEL":{"reserve":380,"regenPerDay":0.35},
+    "FIELD_COIL":{"reserve":180,"regenPerDay":0.12},
+    "BIO_RESIN":{"reserve":260,"regenPerDay":0.45},
+    "SENSOR_GLASS":{"reserve":100,"regenPerDay":0.05}
+  },
+  "job":{"npcAcceptanceBase":0.72,"maxActivePerWorker":1,"marketPaysPerUnit":1,"failIfSourceEmpty":true},
+  "playerParticipation":{"enabled":true,"acceptEveryDays":13},
+  "allValuesTunable": true
+}

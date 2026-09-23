@@ -46,7 +46,30 @@ class MainActivity:Activity(){
  override fun onBackPressed(){if(mainView!=null && mainView?.parent==null)showMain() else super.onBackPressed()}
  private fun workingFiles():List<File>{val w=File(filesDir,"workspace/working");return if(w.exists())w.walkTopDown().filter{it.isFile}.toList() else emptyList()}
  private fun showAssets(){val assets=AssetBrowser.index(workingFiles());val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16)};box.addView(Button(this).apply{text="← BACK";setOnClickListener{showMain()}});box.addView(TextView(this).apply{text="ASSETS ("+assets.size+")";textSize=20f});assets.take(200).forEach{a->box.addView(Button(this).apply{text=a.kind+"  "+a.file.name;setOnClickListener{if(a.kind=="IMAGE")AssetPreview.showImage(this@MainActivity,a.file) else AssetPreview.showAudio(this@MainActivity,a.file)}})};setContentView(ScrollView(this).apply{addView(box)})}
- private fun showBuild(){val coins=workingFiles().mapNotNull{CoinInspector.inspect(it)};val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16)};box.addView(Button(this).apply{text="← BACK";setOnClickListener{showMain()}});box.addView(TextView(this).apply{text="COINS ("+coins.size+")";textSize=20f});coins.take(300).forEach{x->box.addView(TextView(this).apply{text=x.coinId+"\n"+x.name+"\n"+x.category+" / "+x.domain+" / "+x.role;setPadding(8,12,8,12)})};setContentView(ScrollView(this).apply{addView(box)})}
+ private fun showBuild(){
+ val coinFiles=workingFiles().filter{it.name.endsWith(".coin.json")}
+ val coins=coinFiles.mapNotNull{f->CoinInspector.inspect(f)?.let{f to it}}
+ val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
+ box.addView(Button(this).apply{text="← BACK";setOnClickListener{showMain()}})
+ box.addView(TextView(this).apply{text="COIN WORKSPACE ("+coins.size+")";textSize=20f;setTextColor(Color.rgb(0,190,255));setPadding(8,12,8,12)})
+ coins.take(300).forEach{pair->
+  val file=pair.first;val x=pair.second
+  box.addView(Button(this).apply{text=x.coinId+"  •  "+x.name+"\n"+x.category+" / "+x.domain+" / "+x.role;setTextColor(Color.WHITE);setBackgroundColor(Color.rgb(5,18,29));setOnClickListener{showCoin(file,x)}})
+ }
+ setContentView(ScrollView(this).apply{addView(box)})
+}
+private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
+ val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
+ box.addView(Button(this).apply{text="← COINS";setOnClickListener{showBuild()}})
+ fun row(k:String,v:String)=TextView(this).apply{text=k+"\n"+if(v.isBlank())"UNRESOLVED" else v;textSize=15f;setTextColor(Color.WHITE);setPadding(12,10,12,10);setBackgroundColor(Color.rgb(5,18,29))}
+ box.addView(TextView(this).apply{text=x.coinId;textSize=22f;setTextColor(Color.rgb(0,190,255));setPadding(8,12,8,4)})
+ box.addView(TextView(this).apply{text=x.name;textSize=17f;setTextColor(Color.WHITE);setPadding(8,4,8,12)})
+ box.addView(row("CATEGORY",x.category));box.addView(row("DOMAIN",x.domain));box.addView(row("ROLE",x.role))
+ box.addView(row("ARTIFACT SHA-256",x.sha256));box.addView(row("ARTIFACT BYTES",x.bytes.toString()))
+ box.addView(row("COIN FILE",file.name))
+ box.addView(row("PROVIDES","UNRESOLVED"));box.addView(row("REQUIRES","UNRESOLVED"))
+ setContentView(ScrollView(this).apply{addView(box)})
+}
  private fun showExport(){val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL};box.addView(Button(this).apply{text="← BACK";setOnClickListener{showMain()}});box.addView(Button(this).apply{text="PROJECT ZIP";setOnClickListener{startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).apply{addCategory(Intent.CATEGORY_OPENABLE);type="application/zip";putExtra(Intent.EXTRA_TITLE,"BuildByCoin_Project.zip")},SAVE_ZIP)}});val files=store.listOriginals();files.take(30).forEach{file->box.addView(Button(this).apply{text="FILE: "+file.name;setOnClickListener{pendingExport=file;startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).apply{addCategory(Intent.CATEGORY_OPENABLE);type="application/octet-stream";putExtra(Intent.EXTRA_TITLE,file.name)},SAVE_FILE)}})};setContentView(ScrollView(this).apply{addView(box)})}
  private fun showFiles(){
  val fs=store.listOriginals()+workingFiles()

@@ -24,7 +24,13 @@ class MainActivity:Activity(){
  fun label(t:String,s:Float=16f)=TextView(this).apply{text=t;textSize=s;setTextColor(Color.WHITE);setPadding(8,8,8,8)}
  fun tab(n:String)=Button(this).apply{text=n;textSize=12f;setTextColor(Color.WHITE);background=panelBg();setPadding(4,2,4,2)}
  root.addView(label("◈  BUILD BY COIN",24f).apply{setTextColor(cyan);setTypeface(typeface,Typeface.BOLD)});root.addView(label("COIN TESTING & GAME BUILDER",12f).apply{setTextColor(cyan)});val tabs=LinearLayout(this)
- listOf("Terminal","Files","Assets","Build","Run","Export").forEach{n->tabs.addView(tab(n).apply{setOnClickListener{when(n){"Terminal"->showMain();"Files"->showFiles();"Assets"->showAssets();"Build"->showBuild();"Run"->TestPanel.show(this@MainActivity){showMain()};"Export"->showExport()}}})},LinearLayout.LayoutParams(0,56,1f))};root.addView(tabs)
+ listOf("Terminal","Files","Assets","Build","Run","Export").forEach { n ->
+  val button=tab(n).apply { setOnClickListener {
+   when(n){"Terminal"->showMain();"Files"->showFiles();"Assets"->showAssets();"Build"->showBuild();"Run"->TestPanel.show(this@MainActivity){showMain()};"Export"->showExport()}
+  }}
+  tabs.addView(button,LinearLayout.LayoutParams(0,56,1f))
+ }
+ root.addView(tabs)
  terminal=label("> Welcome to Build by Coin\n> Ready for intake\n> Tap FILE, ZIP or ASSET\n> Runtime: v0.1.0\n> Originals remain untouched.",15f).apply{setTextColor(Color.rgb(0,255,150));typeface=Typeface.MONOSPACE;background=panelBg()};root.addView(terminal,LinearLayout.LayoutParams(-1,0,1f));root.addView(label("INTAKE",18f));val intake=LinearLayout(this)
  fun b(n:String,c:Int,t:String):Button { return Button(this).apply { text=n; setOnClickListener { pick(c,t) } } }
  intake.addView(b("FILE",OPEN_FILE,"*/*"),LinearLayout.LayoutParams(0,-2,1f))

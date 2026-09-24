@@ -21,7 +21,7 @@ import org.stratumnova.buildbycoin.assets.AssetPreview
 import java.io.File
 class MainActivity:Activity(){
  private lateinit var terminal:TextView;private lateinit var store:WorkspaceStore;private var mainView:android.view.View?=null;private var lastCartridge:org.stratumnova.buildbycoin.workspace.CartridgeResult?=null
- private val OPEN_FILE=1001;private val OPEN_ZIP=1002;private val OPEN_ASSET=1003;private val SAVE_ZIP=2001;private val SAVE_FILE=2002;private val SAVE_TEST=2003;private val SAVE_COIN=2004;private val SAVE_TEMPLATE=2005;private var pendingExport:File?=null;private var pendingExportRoot:File?=null
+ private val OPEN_FILE=1001;private val OPEN_ZIP=1002;private val OPEN_ASSET=1003;private val OPEN_VERSION=1004;private val SAVE_ZIP=2001;private val SAVE_FILE=2002;private val SAVE_TEST=2003;private val SAVE_COIN=2004;private val SAVE_TEMPLATE=2005;private var pendingExport:File?=null;private var pendingExportRoot:File?=null;private var pendingVersionCoinId:String?=null;private var pendingVersionContainer:File?=null
  override fun onCreate(state:Bundle?){super.onCreate(state);store=WorkspaceStore(this);val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
  val cyan=Color.rgb(0,190,255);val panel=Color.rgb(5,18,29)
  fun panelBg(stroke:Boolean=true)=GradientDrawable().apply{setColor(panel);cornerRadius=12f;if(stroke)setStroke(2,cyan)}
@@ -45,7 +45,20 @@ class MainActivity:Activity(){
  mainView=root;setContentView(root)
  }
  private fun pick(c:Int,t:String)=startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply{addCategory(Intent.CATEGORY_OPENABLE);type=t},c)
- override fun onActivityResult(r:Int,rc:Int,data:Intent?){super.onActivityResult(r,rc,data);if(rc!=RESULT_OK)return;val uri=data?.data?:return;try{if(r==SAVE_ZIP){Exporter.projectZip(this,File(filesDir,"workspace"),uri);terminal.text="> PROJECT ZIP EXPORTED";return};if(r==SAVE_TEST){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> TEST PACKAGE EXPORTED";return};if(r==SAVE_COIN){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> COIN CONTAINER EXPORTED";return};if(r==SAVE_TEMPLATE){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> TEMPLATE EXPORTED";return};if(r==SAVE_FILE){pendingExport?.let{Exporter.singleFile(this,it,uri)};terminal.text="> SINGLE FILE EXPORTED";return};val scanner=IntakeScanner(this);if(r==OPEN_ZIP){val items=scanner.scanZip(uri);val groups=items.groupingBy{it.kind}.eachCount();val cartridge=store.importZip(uri);lastCartridge=cartridge;terminal.text="> ZIP scanned\n> Entries: "+items.size+"\n"+groups.entries.sortedByDescending{it.value}.joinToString("\n"){"> "+it.key+": "+it.value}+"\n> Cartridge: "+cartridge.root.name+"\n> Extracted files: "+cartridge.files.size+"\n> Source ZIP not modified."}else{val e=scanner.scanSingle(uri);val saved=store.preserveSingle(uri,e);val c=CoinInspector.inspect(saved.file);terminal.text=if(c!=null)"> COIN PRESERVED\n> "+c.coinId+"\n> "+c.name+"\n> "+c.category+" / "+c.domain+"\n> Role: "+c.role+"\n> READ ONLY\n> SHA-256: "+e.sha256 else "> FILE PRESERVED\n> "+e.name+"\n> Type: "+e.kind+"\n> Bytes: "+e.bytes+"\n> SHA-256: "+e.sha256+"\n> Candidate coin fields: UNRESOLVED"}}catch(e:Exception){terminal.text="> INTAKE ERROR\n> "+e.javaClass.simpleName+": "+e.message}}
+ override fun onActivityResult(r:Int,rc:Int,data:Intent?){super.onActivityResult(r,rc,data);if(rc!=RESULT_OK)return;val uri=data?.data?:return;try{if(r==SAVE_ZIP){Exporter.projectZip(this,File(filesDir,"workspace"),uri);terminal.text="> PROJECT ZIP EXPORTED";return};if(r==SAVE_TEST){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> TEST PACKAGE EXPORTED";return};if(r==SAVE_COIN){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> COIN CONTAINER EXPORTED";return};if(r==SAVE_TEMPLATE){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> TEMPLATE EXPORTED";return};if(r==SAVE_FILE){pendingExport?.let{Exporter.singleFile(this,it,uri)};terminal.text="> SINGLE FILE EXPORTED";return};if(r==OPEN_VERSION){
+ val coinId=pendingVersionCoinId?:return
+ val container=pendingVersionContainer?:return
+ val scanner=IntakeScanner(this);val entry=scanner.scanSingle(uri)
+ val versions=File(container,"versions");versions.mkdirs()
+ val target=uniqueVersionFile(versions,entry.name)
+ contentResolver.openInputStream(uri)!!.use{i->target.outputStream().use{o->i.copyTo(o)}}
+ if(target.length()!=entry.bytes){target.delete();throw IllegalStateException("version byte verification failed")}
+ val record=SidewaysRecord.create(coinId,target,SidewaysType.VERSION,"Imported revised artifact; baseline preserved")
+ val side=File(container,"sideways");side.mkdirs()
+ File(side,coinId+"_version_"+System.currentTimeMillis()+".sideways.json").writeText(record.toString(2))
+ terminal.text="> VERSION PRESERVED\n> "+coinId+"\n> "+target.name+"\n> SHA-256: "+entry.sha256+"\n> Baseline unchanged."
+ pendingVersionCoinId=null;pendingVersionContainer=null;showMain();return
+};val scanner=IntakeScanner(this);if(r==OPEN_ZIP){val items=scanner.scanZip(uri);val groups=items.groupingBy{it.kind}.eachCount();val cartridge=store.importZip(uri);lastCartridge=cartridge;terminal.text="> ZIP scanned\n> Entries: "+items.size+"\n"+groups.entries.sortedByDescending{it.value}.joinToString("\n"){"> "+it.key+": "+it.value}+"\n> Cartridge: "+cartridge.root.name+"\n> Extracted files: "+cartridge.files.size+"\n> Source ZIP not modified."}else{val e=scanner.scanSingle(uri);val saved=store.preserveSingle(uri,e);val c=CoinInspector.inspect(saved.file);terminal.text=if(c!=null)"> COIN PRESERVED\n> "+c.coinId+"\n> "+c.name+"\n> "+c.category+" / "+c.domain+"\n> Role: "+c.role+"\n> READ ONLY\n> SHA-256: "+e.sha256 else "> FILE PRESERVED\n> "+e.name+"\n> Type: "+e.kind+"\n> Bytes: "+e.bytes+"\n> SHA-256: "+e.sha256+"\n> Candidate coin fields: UNRESOLVED"}}catch(e:Exception){terminal.text="> INTAKE ERROR\n> "+e.javaClass.simpleName+": "+e.message}}
  private fun showMain(){mainView?.let{setContentView(it)}}
  override fun onBackPressed(){if(mainView!=null && mainView?.parent==null)showMain() else super.onBackPressed()}
  private fun workingFiles():List<File>{val w=File(filesDir,"workspace/working");return if(w.exists())w.walkTopDown().filter{it.isFile}.toList() else emptyList()}
@@ -89,11 +102,22 @@ private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
  box.addView(row("COIN FILE",file.name))
  box.addView(row("PROVIDES",x.provides));box.addView(row("REQUIRES",x.requires))
  val actions=LinearLayout(this)
- actions.addView(Button(this).apply{text="ADD VERSION";setOnClickListener{createSideways(x.coinId,file,SidewaysType.VERSION)}},LinearLayout.LayoutParams(0,-2,1f))
+ actions.addView(Button(this).apply{text="ADD VERSION";setOnClickListener{pickVersion(x.coinId,file)}},LinearLayout.LayoutParams(0,-2,1f))
  actions.addView(Button(this).apply{text="ADD EVIDENCE";setOnClickListener{createSideways(x.coinId,file,SidewaysType.EVIDENCE)}},LinearLayout.LayoutParams(0,-2,1f))
  box.addView(actions)
  setContentView(ScrollView(this).apply{addView(box)})
 }
+ private fun pickVersion(masterCoinId:String,coinFile:File){
+  val container=coinFile.parentFile?:return
+  pendingVersionCoinId=masterCoinId;pendingVersionContainer=container
+  startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply{addCategory(Intent.CATEGORY_OPENABLE);type="*/*"},OPEN_VERSION)
+ }
+ private fun uniqueVersionFile(dir:File,name:String):File{
+  val clean=name.substringAfterLast('/').replace(Regex("[^A-Za-z0-9._-]"),"_").ifBlank{"version_artifact"}
+  var out=File(dir,clean);if(!out.exists())return out
+  var n=1
+  while(true){val suffix=if(out.extension.isBlank())"" else "."+out.extension;val candidate=File(dir,out.nameWithoutExtension+"_"+n+suffix);if(!candidate.exists())return candidate;n++}
+ }
  private fun createSideways(masterCoinId:String,source:File,type:SidewaysType){
   val input=EditText(this).apply{hint="Short note — optional"}
   AlertDialog.Builder(this).setTitle(type.name+" → "+masterCoinId).setView(input).setNegativeButton("CANCEL",null).setPositiveButton("CREATE"){_,_->

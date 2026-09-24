@@ -8,10 +8,10 @@ import org.stratumnova.buildbycoin.runtime.*
 import java.io.File
 object TestPanel{
  fun show(a:Activity,onBack:()->Unit){
-  val runtime=RuntimeCore(25L,30);val playInputs=mutableListOf<Command>();var playStart=runtime.stateHash();var playStartEvents=0;var runBusy=false
+  val assembly=ActiveAssembly.resolve(File(a.filesDir,"workspace/working"));val runtime=RuntimeCore(25L,30);val playInputs=mutableListOf<Command>();var playStart=runtime.stateHash();var playStartEvents=0;var runBusy=false
   val root=LinearLayout(a).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
   val top=LinearLayout(a);top.addView(Button(a).apply{text="← BACK";setOnClickListener{onBack()}},LinearLayout.LayoutParams(0,-2,1f))
-  val status=TextView(a).apply{setTextColor(Color.WHITE);textSize=15f;text="PLAY / AUTO / WATCH — same RuntimeCore"};top.addView(status,LinearLayout.LayoutParams(0,-2,3f));root.addView(top)
+  val status=TextView(a).apply{setTextColor(Color.WHITE);textSize=15f;text="PLAY / AUTO / WATCH — same RuntimeCore | active artifacts "+assembly.size};top.addView(status,LinearLayout.LayoutParams(0,-2,3f));root.addView(top)
   val game=GameView(a,runtime);game.onCommand={cmd->playInputs+=cmd;status.text="PLAY | inputs "+playInputs.size+" | tick "+runtime.clock.tick};root.addView(game,LinearLayout.LayoutParams(-1,0,1f))
   val controls=LinearLayout(a)
   controls.addView(Button(a).apply{text="PLAY";setOnClickListener{if(!runBusy){playInputs.clear();playStart=runtime.stateHash();playStartEvents=runtime.bus.all().size;status.text="PLAY armed — touch game to move"}}},LinearLayout.LayoutParams(0,-2,1f))

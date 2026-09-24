@@ -45,7 +45,23 @@ class MainActivity:Activity(){
  private fun showMain(){mainView?.let{setContentView(it)}}
  override fun onBackPressed(){if(mainView!=null && mainView?.parent==null)showMain() else super.onBackPressed()}
  private fun workingFiles():List<File>{val w=File(filesDir,"workspace/working");return if(w.exists())w.walkTopDown().filter{it.isFile}.toList() else emptyList()}
- private fun showAssets(){val assets=AssetBrowser.index(workingFiles());val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16)};box.addView(Button(this).apply{text="← BACK";setOnClickListener{showMain()}});box.addView(TextView(this).apply{text="ASSETS ("+assets.size+")";textSize=20f});assets.take(200).forEach{a->box.addView(Button(this).apply{text=a.kind+"  "+a.file.name;setOnClickListener{if(a.kind=="IMAGE")AssetPreview.showImage(this@MainActivity,a.file){showAssets()} else AssetPreview.showAudio(this@MainActivity,a.file){showAssets()}}})};setContentView(ScrollView(this).apply{addView(box)})}
+ private fun showAssets(){
+  val assets=AssetBrowser.index(workingFiles())
+  val images=assets.count{it.kind=="IMAGE"};val audio=assets.count{it.kind=="AUDIO"}
+  val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
+  box.addView(Button(this).apply{text="← BACK";setOnClickListener{showMain()}})
+  box.addView(TextView(this).apply{text="ASSET WORKSHOP";textSize=20f;setTextColor(Color.rgb(0,190,255));setPadding(8,12,8,4)})
+  box.addView(TextView(this).apply{text="All ("+assets.size+")   Images ("+images+")   Audio ("+audio+")";textSize=14f;setTextColor(Color.WHITE);setPadding(8,4,8,12)})
+  if(assets.isEmpty())box.addView(TextView(this).apply{text="No image or audio assets in the active workspace.";setTextColor(Color.WHITE);setPadding(8,16,8,16)})
+  assets.take(250).forEach{a->
+   box.addView(Button(this).apply{
+    text=(if(a.kind=="IMAGE")"▣  IMAGE" else "♪  AUDIO")+"\n"+a.file.name+"   "+a.file.length()+" B"
+    setTextColor(Color.WHITE);setBackgroundColor(Color.rgb(5,18,29))
+    setOnClickListener{if(a.kind=="IMAGE")AssetPreview.showImage(this@MainActivity,a.file){showAssets()} else AssetPreview.showAudio(this@MainActivity,a.file){showAssets()}}
+   })
+  }
+  setContentView(ScrollView(this).apply{addView(box)})
+ }
  private fun showBuild(){
  val coinFiles=workingFiles().filter{it.name.endsWith(".coin.json")}
  val coins=coinFiles.mapNotNull{f->CoinInspector.inspect(f)?.let{f to it}}

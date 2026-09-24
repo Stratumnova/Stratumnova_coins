@@ -108,6 +108,18 @@ private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
  val side=File(file.parentFile,"sideways")
  val records=side.listFiles()?.filter{it.isFile&&it.name.endsWith(".sideways.json")}?.sortedBy{it.name}.orEmpty()
  box.addView(row("SIDEWAYS RECORDS",records.size.toString()))
+ val activeFile=File(file.parentFile,"active-version.json")
+ val active=if(activeFile.isFile)try{org.json.JSONObject(activeFile.readText()).optString("version_id","BASELINE")}catch(_:Exception){"BASELINE"}else "BASELINE"
+ box.addView(row("ACTIVE VERSION",active))
+ val versionChoices=mutableListOf("BASELINE")
+ records.forEach{r->try{val j=org.json.JSONObject(r.readText());if(j.optString("sideways_type")=="VERSION"){val v=j.optString("version_id","UNRESOLVED");if(v!="UNRESOLVED"&&!versionChoices.contains(v))versionChoices+=v}}catch(_:Exception){}}
+ box.addView(Button(this).apply{text="SELECT ACTIVE VERSION";setOnClickListener{
+  AlertDialog.Builder(this@MainActivity).setTitle("Active version → "+x.coinId).setItems(versionChoices.toTypedArray()){_,which->
+   val chosen=versionChoices[which]
+   activeFile.writeText(org.json.JSONObject().put("schema","a25.active-version.v0.1").put("master_coin_id",x.coinId).put("version_id",chosen).toString(2))
+   Toast.makeText(this@MainActivity,"Active version: "+chosen,Toast.LENGTH_SHORT).show();showCoin(file,x)
+  }.show()
+ }})
  records.takeLast(40).forEach{r->
   try{
    val j=org.json.JSONObject(r.readText())

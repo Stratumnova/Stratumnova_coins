@@ -1,9 +1,9 @@
-# Build by Coin — Premade Market Test Room v0.1
+# Build by Coin — Universal 25x25 Test Room v0.1
 
 Status: implementation target
 
 ## Purpose
-A deliberately plain, deterministic 25x25 tile room used to prove that loaded Coins, runtime adapters, assets, crafting, stalls, NPCs, customers, currency, placement, pathways, evidence, and export work together in the same runtime.
+A deliberately plain, deterministic 25x25 tile room used to prove loaded Coins and game systems inside the same runtime. The market is the first premade scenario, not the room's permanent identity. The same 625 coded spaces must support market/economy, combat, fishing, farming/ecology, NPC behavior, resource nodes, puzzles, racing/movement experiments, and future game types by changing tile types, entities, rules, and mapped assets rather than replacing the test runtime.
 
 The room is test equipment, not final game art. Generic geometry and labels are authoritative fallbacks. Imported ZIP assets may replace visuals without replacing the logical object identity.
 
@@ -17,6 +17,15 @@ The room is test equipment, not final game art. Generic geometry and labels are 
 - Pathfinding and placement use space codes, not screen pixels.
 - Outer edge is blocked except explicitly declared entrances.
 - Runtime state/evidence records object placement by space code.
+
+## Room presets
+The initial runtime exposes simple room mutations while preserving the same 25x25 coordinate/space-code system:
+- `MARKET` — restores the three-stall crafting/sales fixture.
+- `FISHING` — swaps a region to WATER and creates a pond-side path. Fishing entities/mechanics can be attached later.
+- `COMBAT` — clears market actors and creates a simple arena with blocking cover.
+- `SANDBOX` — clears scenario actors while retaining the universal grid.
+
+Presets are starting fixtures, not separate engines. A Coin may also alter individual tiles or regions directly. A WATER tile can become a pond using a generic blue fallback or an imported water asset; combat cover can likewise use a primitive block or imported art. Tile type remains logical authority.
 
 ## Test economy
 One currency: `CREDIT`.

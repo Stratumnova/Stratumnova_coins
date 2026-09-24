@@ -105,6 +105,25 @@ private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
  actions.addView(Button(this).apply{text="ADD VERSION";setOnClickListener{pickVersion(x.coinId,file)}},LinearLayout.LayoutParams(0,-2,1f))
  actions.addView(Button(this).apply{text="ADD EVIDENCE";setOnClickListener{createSideways(x.coinId,file,SidewaysType.EVIDENCE)}},LinearLayout.LayoutParams(0,-2,1f))
  box.addView(actions)
+ val side=File(file.parentFile,"sideways")
+ val records=side.listFiles()?.filter{it.isFile&&it.name.endsWith(".sideways.json")}?.sortedBy{it.name}.orEmpty()
+ box.addView(row("SIDEWAYS RECORDS",records.size.toString()))
+ records.takeLast(40).forEach{r->
+  try{
+   val j=org.json.JSONObject(r.readText())
+   val kind=j.optString("sideways_type","UNRESOLVED")
+   val version=j.optString("version_id","UNRESOLVED")
+   val parent=j.optString("parent_version","UNRESOLVED")
+   val artifact=j.optString("name","UNRESOLVED")
+   val sha=j.optString("sha256","UNRESOLVED")
+   box.addView(TextView(this).apply{
+    text=kind+"  "+version+"\nParent: "+parent+"\n"+artifact+"\nSHA-256: "+sha
+    textSize=12f;setTextColor(Color.WHITE);setPadding(12,10,12,10);setBackgroundColor(Color.rgb(5,18,29))
+   })
+  }catch(_:Exception){
+   box.addView(row("SIDEWAYS RECORD",r.name+" — unreadable"))
+  }
+ }
  setContentView(ScrollView(this).apply{addView(box)})
 }
  private fun pickVersion(masterCoinId:String,coinFile:File){

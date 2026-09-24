@@ -2,11 +2,21 @@ package org.stratumnova.buildbycoin.runtime
 
 import org.json.JSONObject
 import java.io.File
+import java.security.MessageDigest
 
 data class ActiveArtifact(val coinId:String,val versionId:String,val artifact:File,val sha256:String)
+data class AssemblyResult(val artifacts:List<ActiveArtifact>,val errors:List<String>)
 
 object ActiveAssembly {
- fun resolve(working:File):List<ActiveArtifact>{
+ private fun hash(file:File)=MessageDigest.getInstance("SHA-256").digest(file.readBytes()).joinToString(""){"%02x".format(it)}
+ fun resolveVerified(working:File):AssemblyResult{
+  val errors=mutableListOf<String>()
+  val raw=resolveRaw(working)
+  val good=raw.filter{a->if(a.sha256=="UNRESOLVED"){errors+="UNRESOLVED_SHA:"+a.coinId+"@"+a.versionId;false}else{val ok=hash(a.artifact).equals(a.sha256,true);if(!ok)errors+="SHA_MISMATCH:"+a.coinId+"@"+a.versionId;ok}}
+  return AssemblyResult(good,errors)
+ }
+ fun resolve(working:File)=resolveVerified(working).artifacts
+ private fun resolveRaw(working:File):List<ActiveArtifact>{
   if(!working.exists())return emptyList()
   return working.walkTopDown().filter{it.isFile&&it.name.endsWith(".coin.json")}.mapNotNull{coin->
    try{

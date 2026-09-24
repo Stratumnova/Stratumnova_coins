@@ -20,6 +20,13 @@ import org.stratumnova.buildbycoin.assets.AssetBrowser
 import org.stratumnova.buildbycoin.assets.AssetPreview
 import java.io.File
 class MainActivity:Activity(){
+ private val UI_BG=Color.rgb(2,7,13);private val UI_PANEL=Color.rgb(5,18,29);private val UI_CYAN=Color.rgb(0,213,255);private val UI_MUTED=Color.rgb(150,180,195)
+ private fun uiBg(stroke:Boolean=true)=GradientDrawable().apply{setColor(UI_PANEL);cornerRadius=14f;if(stroke)setStroke(2,UI_CYAN)}
+ private fun uiButton(textValue:String)=Button(this).apply{text=textValue;textSize=13f;setTextColor(Color.WHITE);background=uiBg();setPadding(10,4,10,4);isAllCaps=false}
+ private fun uiTitle(textValue:String)=TextView(this).apply{text=textValue;textSize=21f;setTextColor(UI_CYAN);setTypeface(typeface,Typeface.BOLD);setPadding(8,12,8,8)}
+ private fun uiMeta(textValue:String)=TextView(this).apply{text=textValue;textSize=13f;setTextColor(UI_MUTED);setPadding(8,4,8,10)}
+ private fun uiCard(title:String,detail:String)=Button(this).apply{text=title+"\\n"+detail;textSize=13f;gravity=android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL;setTextColor(Color.WHITE);background=uiBg();setPadding(16,10,16,10);isAllCaps=false}
+
  private lateinit var terminal:TextView;private lateinit var store:WorkspaceStore;private var mainView:android.view.View?=null;private var lastCartridge:org.stratumnova.buildbycoin.workspace.CartridgeResult?=null
  private val OPEN_FILE=1001;private val OPEN_ZIP=1002;private val OPEN_ASSET=1003;private val OPEN_VERSION=1004;private val SAVE_ZIP=2001;private val SAVE_FILE=2002;private val SAVE_TEST=2003;private val SAVE_COIN=2004;private val SAVE_TEMPLATE=2005;private var pendingExport:File?=null;private var pendingExportRoot:File?=null;private var pendingVersionCoinId:String?=null;private var pendingVersionContainer:File?=null;private var pendingVersionId:String="UNRESOLVED";private var pendingParentVersion:String="UNRESOLVED"
  override fun onCreate(state:Bundle?){super.onCreate(state);store=WorkspaceStore(this);val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
@@ -66,9 +73,9 @@ class MainActivity:Activity(){
   val assets=AssetBrowser.index(workingFiles())
   val images=assets.count{it.kind=="IMAGE"};val audio=assets.count{it.kind=="AUDIO"}
   val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
-  box.addView(Button(this).apply{text="← BACK";setOnClickListener{showMain()}})
-  box.addView(TextView(this).apply{text="ASSET WORKSHOP";textSize=20f;setTextColor(Color.rgb(0,190,255));setPadding(8,12,8,4)})
-  box.addView(TextView(this).apply{text="All ("+assets.size+")   Images ("+images+")   Audio ("+audio+")";textSize=14f;setTextColor(Color.WHITE);setPadding(8,4,8,12)})
+  box.addView(uiButton("←  Back").apply{setOnClickListener{showMain()}})
+  box.addView(uiTitle("ASSET WORKSHOP"))
+  box.addView(uiMeta("ALL  "+assets.size+"    IMAGES  "+images+"    AUDIO  "+audio))
   if(assets.isEmpty())box.addView(TextView(this).apply{text="No image or audio assets in the active workspace.";setTextColor(Color.WHITE);setPadding(8,16,8,16)})
   assets.take(250).forEach{a->
    box.addView(Button(this).apply{
@@ -84,7 +91,7 @@ class MainActivity:Activity(){
  val coins=coinFiles.mapNotNull{f->CoinInspector.inspect(f)?.let{f to it}}
  val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
  box.addView(Button(this).apply{text="← BACK";setOnClickListener{showMain()}})
- box.addView(TextView(this).apply{text="COIN WORKSPACE ("+coins.size+")";textSize=20f;setTextColor(Color.rgb(0,190,255));setPadding(8,12,8,12)})
+ box.addView(uiTitle("COIN WORKSPACE  "+coins.size))
  coins.take(300).forEach{pair->
   val file=pair.first;val x=pair.second
   box.addView(Button(this).apply{text=x.coinId+"  •  "+x.name+"\n"+x.category+" / "+x.domain+" / "+x.role;setTextColor(Color.WHITE);setBackgroundColor(Color.rgb(5,18,29));setOnClickListener{showCoin(file,x)}})
@@ -93,7 +100,7 @@ class MainActivity:Activity(){
 }
 private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
  val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
- box.addView(Button(this).apply{text="← COINS";setOnClickListener{showBuild()}})
+ box.addView(uiButton("←  Coins").apply{setOnClickListener{showBuild()}})
  fun row(k:String,v:String)=TextView(this).apply{text=k+"\n"+if(v.isBlank())"UNRESOLVED" else v;textSize=15f;setTextColor(Color.WHITE);setPadding(12,10,12,10);setBackgroundColor(Color.rgb(5,18,29))}
  box.addView(TextView(this).apply{text=x.coinId;textSize=22f;setTextColor(Color.rgb(0,190,255));setPadding(8,12,8,4)})
  box.addView(TextView(this).apply{text=x.name;textSize=17f;setTextColor(Color.WHITE);setPadding(8,4,8,12)})
@@ -189,7 +196,7 @@ private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
  private fun showExport(){
   val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
   box.addView(Button(this).apply{text="← BACK";setOnClickListener{showMain()}})
-  box.addView(TextView(this).apply{text="EXPORT";textSize=20f;setTextColor(Color.rgb(0,190,255));setPadding(8,12,8,4)})
+  box.addView(uiTitle("EXPORT"))
   box.addView(TextView(this).apply{text="Portable snapshots. Workspace remains unchanged.";setTextColor(Color.WHITE);setPadding(8,4,8,12)})
   fun action(name:String,detail:String,run:()->Unit){box.addView(Button(this).apply{text=name+"\n"+detail;setTextColor(Color.WHITE);setBackgroundColor(Color.rgb(5,18,29));setOnClickListener{run()}})}
   action("PROJECT ZIP","Complete current workspace"){startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).apply{addCategory(Intent.CATEGORY_OPENABLE);type="application/zip";putExtra(Intent.EXTRA_TITLE,"BuildByCoin_Project.zip")},SAVE_ZIP)}
@@ -213,7 +220,7 @@ private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
   val coinFiles=workingFiles().filter{it.name.endsWith(".coin.json")}
   val coins=coinFiles.mapNotNull{f->CoinInspector.inspect(f)?.let{f to it}}
   val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
-  box.addView(Button(this).apply{text="← EXPORT";setOnClickListener{showExport()}})
+  box.addView(uiButton("←  Export").apply{setOnClickListener{showExport()}})
   box.addView(TextView(this).apply{text="COIN CONTAINER ("+coins.size+")";textSize=20f;setTextColor(Color.rgb(0,190,255));setPadding(8,12,8,12)})
   coins.take(300).forEach{pair->
    val coinFile=pair.first;val x=pair.second
@@ -258,8 +265,8 @@ private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
  val code=fs.count{it.extension.lowercase() in setOf("js","mjs","kt","java","gd","html","css")}
  val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
  box.addView(Button(this).apply{text="← BACK";setOnClickListener{showMain()}})
- box.addView(TextView(this).apply{text="ZIP / FILE WORKSPACE";textSize=20f;setTextColor(Color.rgb(0,190,255));setPadding(8,8,8,8)})
- box.addView(TextView(this).apply{text="All ("+fs.size+")   Coins ("+coins+")   Assets ("+assets+")   Code ("+code+")";textSize=14f;setTextColor(Color.WHITE);setPadding(8,8,8,8)})
+ box.addView(uiTitle("ZIP / FILE WORKSPACE"))
+ box.addView(uiMeta("ALL  "+fs.size+"    COINS  "+coins+"    ASSETS  "+assets+"    CODE  "+code))
  fs.take(250).forEach{file->
   val isCoin=file.name.endsWith(".coin.json")
   box.addView(Button(this).apply{

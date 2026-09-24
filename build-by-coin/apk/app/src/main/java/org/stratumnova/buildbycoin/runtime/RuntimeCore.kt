@@ -11,7 +11,8 @@ class RuntimeCore(val seed:Long=25L,val tickRate:Int=30,val moveStep:Int=1){
   if(!blocked(nx,ny)){state.playerX=nx;state.playerY=ny}
  };clock.step();state.ticks=clock.tick;bus.emit(GameEvent(clock.tick,"COMMAND",c.name));if(ox!=state.playerX||oy!=state.playerY)bus.emit(GameEvent(clock.tick,"MOVE",room.tile(state.playerX,state.playerY)?.spaceCode?:"UNRESOLVED"))}
  fun setTile(spaceCode:String,kind:TileKind,assetRef:String?=null):Boolean{val ok=room.setTile(spaceCode,kind,assetRef);if(ok)bus.emit(GameEvent(clock.tick,"TILE_CHANGED",spaceCode+"|"+kind.name));return ok}
- fun addPond(x0:Int,y0:Int,x1:Int,y1:Int,assetRef:String?=null){room.addPond(x0,y0,x1,y1,assetRef);bus.emit(GameEvent(clock.tick,"ROOM_REGION_CHANGED","POND|"+x0+","+y0+"|"+x1+","+y1))}\n fun applyRoomPreset(name:String){room.applyPreset(name);state.playerX=12;state.playerY=20;bus.emit(GameEvent(clock.tick,"ROOM_PRESET",name.uppercase()))}
+ fun addPond(x0:Int,y0:Int,x1:Int,y1:Int,assetRef:String?=null){room.addPond(x0,y0,x1,y1,assetRef);bus.emit(GameEvent(clock.tick,"ROOM_REGION_CHANGED","POND|"+x0+","+y0+"|"+x1+","+y1))}
+ fun applyRoomPreset(name:String){room.applyPreset(name);state.playerX=12;state.playerY=20;bus.emit(GameEvent(clock.tick,"ROOM_PRESET",name.uppercase()))}
  fun craft(stallId:String):Boolean{val ok=market.craft(stallId);bus.emit(GameEvent(clock.tick,if(ok)"CRAFT_COMPLETED" else "CRAFT_REJECTED",stallId));return ok}
  fun sell(stallId:String,customerId:String):Boolean{val ok=market.sell(stallId,customerId);bus.emit(GameEvent(clock.tick,if(ok)"SALE_COMPLETED" else "SALE_REJECTED",stallId+"|"+customerId));return ok}
  fun stateHash():String{val tileState=room.tiles.flatMap{it.asList()}.joinToString(";"){it.spaceCode+":"+it.kind+":"+(it.occupiedBy?:"")+":"+(it.assetRef?:"")}

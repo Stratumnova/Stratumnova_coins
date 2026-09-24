@@ -26,6 +26,25 @@ object TestPanel{
   val top=LinearLayout(a);top.addView(button("←  Back").apply{setOnClickListener{onBack()}},LinearLayout.LayoutParams(0,-2,1f))
   val status=TextView(a).apply{setTextColor(Color.WHITE);textSize=15f;text="PLAY / AUTO / WATCH — same RuntimeCore | active artifacts "+assembly.size+" | adapters "+contributions.size+" | step "+moveStep+" | tick "+tickRate+(if(assemblyResult.errors.isNotEmpty()) " | REJECTED "+assemblyResult.errors.size else "")+(if(conflicts.isNotEmpty()) " | CONFIG CONFLICT "+conflicts.joinToString(",") else "")};top.addView(status,LinearLayout.LayoutParams(0,-2,3f));root.addView(top)
   val game=GameView(a,runtime);game.onCommand={cmd->playInputs+=cmd;status.text="PLAY | inputs "+playInputs.size+" | tick "+runtime.clock.tick};root.addView(game,LinearLayout.LayoutParams(-1,0,1f))
+  val presets=LinearLayout(a)
+  listOf("MARKET","FISHING","COMBAT","SANDBOX").forEach{preset->
+   presets.addView(button(preset).apply{setOnClickListener{
+    if(runBusy)status.text="Runtime busy — preset change blocked"
+    else{runtime.applyRoomPreset(preset);game.invalidate();status.text="ROOM "+preset+" | 25x25 | player "+(runtime.room.tile(runtime.state.playerX,runtime.state.playerY)?.spaceCode?:"?")}
+   }},LinearLayout.LayoutParams(0,-2,1f))
+  }
+  root.addView(presets)
+  val tileTools=LinearLayout(a)
+  tileTools.addView(button("SPACE CODES").apply{setOnClickListener{game.showSpaceCodes=!game.showSpaceCodes;game.invalidate();status.text="Space codes "+if(game.showSpaceCodes)"ON" else "OFF"}},LinearLayout.LayoutParams(0,-2,1f))
+  tileTools.addView(button("TILE HERE").apply{setOnClickListener{val t=runtime.room.tile(runtime.state.playerX,runtime.state.playerY);status.text=(t?.spaceCode?:"UNRESOLVED")+" | "+(t?.kind?.name?:"UNRESOLVED")}},LinearLayout.LayoutParams(0,-2,1f))
+  tileTools.addView(button("SWAP TILE").apply{setOnClickListener{
+   val t=runtime.room.tile(runtime.state.playerX,runtime.state.playerY)?:return@setOnClickListener
+   val kinds=TileKind.values()
+   android.app.AlertDialog.Builder(a).setTitle("Tile "+t.spaceCode).setItems(kinds.map{it.name}.toTypedArray()){_,which->
+    runtime.setTile(t.spaceCode,kinds[which]);game.invalidate();status.text=t.spaceCode+" → "+kinds[which].name
+   }.show()
+  }},LinearLayout.LayoutParams(0,-2,1f))
+  root.addView(tileTools)
   val controls=LinearLayout(a)
   controls.addView(button("PLAY").apply{setOnClickListener{if(assemblyResult.errors.isNotEmpty()){status.text="PLAY blocked — assembly verification failed: "+assemblyResult.errors.joinToString(",")}else if(conflicts.isNotEmpty()){status.text="PLAY blocked — runtime_config conflict: "+conflicts.joinToString(",")}else if(!runBusy){playInputs.clear();playStart=runtime.stateHash();playStartEvents=runtime.bus.all().size;status.text="PLAY armed — touch game to move"}}},LinearLayout.LayoutParams(0,-2,1f))
   controls.addView(button("SAVE").apply{setOnClickListener{if(assemblyResult.errors.isNotEmpty()||conflicts.isNotEmpty()){status.text="SAVE blocked — invalid assembly";return@setOnClickListener};val r=TestRun(RunMode.PLAY,runtime.seed,runtime.tickRate,playInputs.map{it.name},playStart,runtime.stateHash(),runtime.bus.all().drop(playStartEvents),contributions,assembly);val d=EvidenceWriter.write(File(a.filesDir,"workspace/evidence"),r);status.text="PLAY saved | "+playInputs.size+" inputs | "+d.name}},LinearLayout.LayoutParams(0,-2,1f))

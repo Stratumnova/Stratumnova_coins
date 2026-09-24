@@ -20,8 +20,8 @@ object TestPanel{
   val game=GameView(a,runtime);game.onCommand={cmd->playInputs+=cmd;status.text="PLAY | inputs "+playInputs.size+" | tick "+runtime.clock.tick};root.addView(game,LinearLayout.LayoutParams(-1,0,1f))
   val controls=LinearLayout(a)
   controls.addView(Button(a).apply{text="PLAY";setOnClickListener{if(!runBusy){playInputs.clear();playStart=runtime.stateHash();playStartEvents=runtime.bus.all().size;status.text="PLAY armed — touch game to move"}}},LinearLayout.LayoutParams(0,-2,1f))
-  controls.addView(Button(a).apply{text="SAVE";setOnClickListener{val r=TestRun(RunMode.PLAY,runtime.seed,runtime.tickRate,playInputs.map{it.name},playStart,runtime.stateHash(),runtime.bus.all().drop(playStartEvents));val d=EvidenceWriter.write(File(a.filesDir,"workspace/evidence"),r);status.text="PLAY saved | "+playInputs.size+" inputs | "+d.name}},LinearLayout.LayoutParams(0,-2,1f))
-  fun automated(mode:RunMode){val r=TestHarness(runtime).run(mode,TestHarness.defaultScenario());val d=EvidenceWriter.write(File(a.filesDir,"workspace/evidence"),r);game.invalidate();status.text=mode.name+" complete | events "+r.events.size+" | "+r.afterHash.take(12)+"\n"+d.name}
+  controls.addView(Button(a).apply{text="SAVE";setOnClickListener{val r=TestRun(RunMode.PLAY,runtime.seed,runtime.tickRate,playInputs.map{it.name},playStart,runtime.stateHash(),runtime.bus.all().drop(playStartEvents),contributions);val d=EvidenceWriter.write(File(a.filesDir,"workspace/evidence"),r);status.text="PLAY saved | "+playInputs.size+" inputs | "+d.name}},LinearLayout.LayoutParams(0,-2,1f))
+  fun automated(mode:RunMode){val base=TestHarness(runtime).run(mode,TestHarness.defaultScenario());val r=base.copy(runtimeContributions=contributions);val d=EvidenceWriter.write(File(a.filesDir,"workspace/evidence"),r);game.invalidate();status.text=mode.name+" complete | events "+r.events.size+" | "+r.afterHash.take(12)+"\n"+d.name}
   fun watch(){
    if(runBusy){status.text="WATCH already running";return}
    runBusy=true
@@ -33,7 +33,7 @@ object TestPanel{
      handler.postDelayed({step()},450)
     }else{
      val events=runtime.bus.all().drop(startEvents)
-     val r=TestRun(RunMode.WATCH,runtime.seed,runtime.tickRate,commands.map{it.name},before,runtime.stateHash(),events)
+     val r=TestRun(RunMode.WATCH,runtime.seed,runtime.tickRate,commands.map{it.name},before,runtime.stateHash(),events,contributions)
      val d=EvidenceWriter.write(File(a.filesDir,"workspace/evidence"),r)
      runBusy=false;status.text="WATCH complete | events "+events.size+" | "+r.afterHash.take(12)+"\n"+d.name
     }

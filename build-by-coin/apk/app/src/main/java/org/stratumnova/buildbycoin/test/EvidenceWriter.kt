@@ -10,12 +10,18 @@ object EvidenceWriter{
    try{
     val j=JSONObject(coin.readText());val id=j.optString("coin_id","UNRESOLVED")
     val cur=j.optJSONObject("current");val baselineSha=cur?.optString("sha256","UNRESOLVED")?:"UNRESOLVED"
-    val side=File(coin.parentFile,"sideways")
-    val versions=side.listFiles()?.filter{it.isFile&&it.name.endsWith(".sideways.json")}.orEmpty().mapNotNull{r->
-     try{JSONObject(r.readText()).takeIf{it.optString("sideways_type")=="VERSION"&&it.optString("version_id","UNRESOLVED")!="UNRESOLVED"}}catch(_:Exception){null}
+    val activeFile=File(coin.parentFile,"active-version.json")
+    val active=if(activeFile.isFile)try{JSONObject(activeFile.readText()).optString("version_id","BASELINE")}catch(_:Exception){"BASELINE"}else "BASELINE"
+    if(active=="BASELINE"){
+     coins.put(JSONObject().put("coin_id",id).put("version_id","BASELINE").put("sha256",baselineSha).put("coin_file",coin.name))
+    }else{
+     val side=File(coin.parentFile,"sideways")
+     val selected=side.listFiles()?.filter{it.isFile&&it.name.endsWith(".sideways.json")}?.mapNotNull{r->
+      try{JSONObject(r.readText()).takeIf{it.optString("sideways_type")=="VERSION"&&it.optString("version_id") == active}}catch(_:Exception){null}
+     }?.lastOrNull()
+     if(selected==null)coins.put(JSONObject().put("coin_id",id).put("version_id",active).put("sha256","UNRESOLVED").put("selection_status","MISSING_VERSION_RECORD").put("coin_file",coin.name))
+     else coins.put(JSONObject().put("coin_id",id).put("version_id",active).put("parent_version",selected.optString("parent_version","UNRESOLVED")).put("sha256",selected.optString("sha256","UNRESOLVED")).put("artifact",selected.optString("name","UNRESOLVED")).put("coin_file",coin.name))
     }
-    if(versions.isEmpty())coins.put(JSONObject().put("coin_id",id).put("version_id","BASELINE").put("sha256",baselineSha).put("coin_file",coin.name))
-    else versions.forEach{v->coins.put(JSONObject().put("coin_id",id).put("version_id",v.optString("version_id","UNRESOLVED")).put("parent_version",v.optString("parent_version","UNRESOLVED")).put("sha256",v.optString("sha256","UNRESOLVED")).put("artifact",v.optString("name","UNRESOLVED")).put("coin_file",coin.name))}
    }catch(_:Exception){}
   }
   File(dir,"scenario.json").writeText(JSONObject().put("mode",run.mode.name).put("seed",run.seed).put("tick_rate",run.tickRate).put("inputs",JSONArray(run.inputs)).put("coin_assembly",coins).toString(2))

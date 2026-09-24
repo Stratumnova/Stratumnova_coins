@@ -99,12 +99,11 @@ private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
   action("COIN CONTAINER","Select a real Coin and export its source container"){showCoinContainerExport()}
   action("TEMPLATE","Portable clean project/runtime scaffold"){
    val template=File(filesDir,"workspace/template")
-   if(!template.exists()){
-    template.mkdirs()
-    File(template,"project.json").writeText("""{"schema":"build-by-coin.project.v0.1","name":"Untitled","runtime":"v0.1.0","seed":25,"tick_rate":30,"coins":[],"assets":[],"tests":[]}""")
-    File(template,"README.txt").writeText("Build by Coin portable template\nRuntime: v0.1.0\nNo source Coins or assets are embedded until explicitly added.\n")
-    File(template,"coins").mkdirs();File(template,"assets").mkdirs();File(template,"tests").mkdirs()
-   }
+   if(template.exists())template.deleteRecursively()
+   template.mkdirs()
+   File(template,"project.json").writeText("""{"schema":"build-by-coin.project.v0.1","name":"Untitled","runtime":"v0.1.0","seed":25,"tick_rate":30,"coins":[],"assets":[],"tests":[]}""")
+   File(template,"README.txt").writeText("Build by Coin portable template\nRuntime: v0.1.0\nNo source Coins or assets are embedded until explicitly added.\n")
+   File(template,"coins").mkdirs();File(template,"assets").mkdirs();File(template,"tests").mkdirs()
    pendingExportRoot=template
    startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).apply{addCategory(Intent.CATEGORY_OPENABLE);type="application/zip";putExtra(Intent.EXTRA_TITLE,"BuildByCoin_Template_v0.1.zip")},SAVE_TEMPLATE)
   }

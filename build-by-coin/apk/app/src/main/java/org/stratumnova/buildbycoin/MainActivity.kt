@@ -103,7 +103,7 @@ private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
  box.addView(row("PROVIDES",x.provides));box.addView(row("REQUIRES",x.requires))
  val actions=LinearLayout(this)
  actions.addView(Button(this).apply{text="ADD VERSION";setOnClickListener{pickVersion(x.coinId,file)}},LinearLayout.LayoutParams(0,-2,1f))
- actions.addView(Button(this).apply{text="ADD EVIDENCE";setOnClickListener{createSideways(x.coinId,file,SidewaysType.EVIDENCE)}},LinearLayout.LayoutParams(0,-2,1f))
+ actions.addView(Button(this).apply{text="ADD EVIDENCE";setOnClickListener{attachEvidence(x.coinId,file)}},LinearLayout.LayoutParams(0,-2,1f))
  box.addView(actions)
  val side=File(file.parentFile,"sideways")
  val records=side.listFiles()?.filter{it.isFile&&it.name.endsWith(".sideways.json")}?.sortedBy{it.name}.orEmpty()
@@ -145,6 +145,22 @@ private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
   var out=File(dir,clean);if(!out.exists())return out
   var n=1
   while(true){val suffix=if(out.extension.isBlank())"" else "."+out.extension;val candidate=File(dir,out.nameWithoutExtension+"_"+n+suffix);if(!candidate.exists())return candidate;n++}
+ }
+ private fun attachEvidence(masterCoinId:String,coinFile:File){
+  val evidenceRoot=File(filesDir,"workspace/evidence")
+  val runs=evidenceRoot.listFiles()?.filter{it.isDirectory&&File(it,"report.json").isFile}?.sortedByDescending{it.lastModified()}.orEmpty()
+  if(runs.isEmpty()){Toast.makeText(this,"No test evidence available yet",Toast.LENGTH_SHORT).show();return}
+  val names=runs.map{it.name}.toTypedArray()
+  AlertDialog.Builder(this).setTitle("Attach test evidence → "+masterCoinId).setItems(names){_,which->
+   val run=runs[which];val report=File(run,"report.json")
+   val container=coinFile.parentFile?:return@setItems
+   val dest=File(container,"evidence/"+run.name);dest.mkdirs()
+   run.listFiles()?.filter{it.isFile}?.forEach{src->src.copyTo(File(dest,src.name),overwrite=false)}
+   val record=SidewaysRecord.create(masterCoinId,report,SidewaysType.EVIDENCE,"Attached test evidence "+run.name)
+   val side=File(container,"sideways");side.mkdirs()
+   File(side,masterCoinId+"_evidence_"+System.currentTimeMillis()+".sideways.json").writeText(record.toString(2))
+   Toast.makeText(this,"Evidence attached: "+run.name,Toast.LENGTH_SHORT).show()
+  }.show()
  }
  private fun createSideways(masterCoinId:String,source:File,type:SidewaysType){
   val input=EditText(this).apply{hint="Short note — optional"}

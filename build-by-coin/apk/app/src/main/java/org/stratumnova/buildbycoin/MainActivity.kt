@@ -9,6 +9,7 @@ import android.widget.*
 import org.stratumnova.buildbycoin.intake.IntakeScanner
 import org.stratumnova.buildbycoin.workspace.WorkspaceStore
 import org.stratumnova.buildbycoin.coin.CoinInspector
+import org.stratumnova.buildbycoin.coin.CoinEditor
 import org.stratumnova.buildbycoin.runtime.GameView
 import org.stratumnova.buildbycoin.test.TestPanel
 import org.stratumnova.buildbycoin.export.Exporter
@@ -144,7 +145,21 @@ private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
  box.addView(Button(this).apply{text="← BACK";setOnClickListener{showMain()}})
  box.addView(TextView(this).apply{text="ZIP / FILE WORKSPACE";textSize=20f;setTextColor(Color.rgb(0,190,255));setPadding(8,8,8,8)})
  box.addView(TextView(this).apply{text="All ("+fs.size+")   Coins ("+coins+")   Assets ("+assets+")   Code ("+code+")";textSize=14f;setTextColor(Color.WHITE);setPadding(8,8,8,8)})
- fs.take(250).forEach{file->box.addView(TextView(this).apply{text=file.name+"   "+file.length()+" B";textSize=13f;setTextColor(Color.WHITE);setPadding(8,8,8,8);setBackgroundColor(Color.rgb(5,18,29))})}
+ fs.take(250).forEach{file->
+  val isCoin=file.name.endsWith(".coin.json")
+  box.addView(Button(this).apply{
+   text=(if(isCoin)"COIN  " else "FILE  ")+file.name+"   "+file.length()+" B"
+   setTextColor(Color.WHITE);setBackgroundColor(Color.rgb(5,18,29))
+   setOnClickListener{
+    if(isCoin){CoinInspector.inspect(file)?.let{showCoin(file,it)}}
+    else CoinEditor.candidateDialog(this@MainActivity,file){json->
+     val dir=File(filesDir,"workspace/working/candidates");dir.mkdirs()
+     val out=File(dir,file.name+".candidate.coin.json");out.writeText(json)
+     Toast.makeText(this@MainActivity,"Candidate saved: "+out.name,Toast.LENGTH_SHORT).show()
+    }
+   }
+  })
+ }
  setContentView(ScrollView(this).apply{addView(box)})
 }
 }

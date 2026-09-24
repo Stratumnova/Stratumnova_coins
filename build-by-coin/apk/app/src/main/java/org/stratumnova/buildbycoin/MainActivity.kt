@@ -10,6 +10,8 @@ import org.stratumnova.buildbycoin.intake.IntakeScanner
 import org.stratumnova.buildbycoin.workspace.WorkspaceStore
 import org.stratumnova.buildbycoin.coin.CoinInspector
 import org.stratumnova.buildbycoin.coin.CoinEditor
+import org.stratumnova.buildbycoin.coin.SidewaysRecord
+import org.stratumnova.buildbycoin.coin.SidewaysType
 import org.stratumnova.buildbycoin.runtime.GameView
 import org.stratumnova.buildbycoin.test.TestPanel
 import org.stratumnova.buildbycoin.export.Exporter
@@ -85,8 +87,24 @@ private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
  box.addView(row("ARTIFACT SHA-256",x.sha256));box.addView(row("ARTIFACT BYTES",x.bytes.toString()))
  box.addView(row("COIN FILE",file.name))
  box.addView(row("PROVIDES",x.provides));box.addView(row("REQUIRES",x.requires))
+ val actions=LinearLayout(this)
+ actions.addView(Button(this).apply{text="ADD VERSION";setOnClickListener{createSideways(x.coinId,file,SidewaysType.VERSION)}},LinearLayout.LayoutParams(0,-2,1f))
+ actions.addView(Button(this).apply{text="ADD EVIDENCE";setOnClickListener{createSideways(x.coinId,file,SidewaysType.EVIDENCE)}},LinearLayout.LayoutParams(0,-2,1f))
+ box.addView(actions)
  setContentView(ScrollView(this).apply{addView(box)})
 }
+ private fun createSideways(masterCoinId:String,source:File,type:SidewaysType){
+  val input=EditText(this).apply{hint="Short note — optional"}
+  AlertDialog.Builder(this).setTitle(type.name+" → "+masterCoinId).setView(input).setNegativeButton("CANCEL",null).setPositiveButton("CREATE"){_,_->
+   val root=source.parentFile?:File(filesDir,"workspace/working")
+   val side=File(root,"sideways");side.mkdirs()
+   val record=SidewaysRecord.create(masterCoinId,source,type,input.text.toString())
+   val stamp=System.currentTimeMillis()
+   val out=File(side,masterCoinId+"_"+type.name.lowercase()+"_"+stamp+".sideways.json")
+   out.writeText(record.toString(2))
+   Toast.makeText(this,"Sideways "+type.name+" record created",Toast.LENGTH_SHORT).show()
+  }.show()
+ }
  private fun showExport(){
   val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
   box.addView(Button(this).apply{text="← BACK";setOnClickListener{showMain()}})

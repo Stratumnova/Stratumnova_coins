@@ -30,7 +30,7 @@ class MainActivity:Activity(){
  root.addView(label("◈  BUILD BY COIN",24f).apply{setTextColor(cyan);setTypeface(typeface,Typeface.BOLD)});root.addView(label("COIN TESTING & GAME BUILDER",12f).apply{setTextColor(cyan)});val tabs=LinearLayout(this)
  listOf("Terminal","Files","Assets","Build","Run","Export").forEach { n ->
   val button=tab(n).apply { setOnClickListener {
-   when(n){"Terminal"->showMain();"Files"->showFiles();"Assets"->showAssets();"Build"->showBuild();"Run"->TestPanel.show(this@MainActivity){showMain()};"Export"->showExport()}
+   when(n){"Terminal"->showMain();"Files"->showFiles();"Assets"->showAssets();"Build"->showBuild();"Run"->openRun();"Export"->showExport()}
   }}
   tabs.addView(button,LinearLayout.LayoutParams(0,56,1f))
  }
@@ -234,6 +234,22 @@ private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
   box.addView(TextView(this).apply{text="SINGLE FILE ("+files.size+")";textSize=20f;setTextColor(Color.rgb(0,190,255));setPadding(8,12,8,12)})
   files.take(250).forEach{file->box.addView(Button(this).apply{text=file.name+"   "+file.length()+" B";setOnClickListener{pendingExport=file;startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).apply{addCategory(Intent.CATEGORY_OPENABLE);type="application/octet-stream";putExtra(Intent.EXTRA_TITLE,file.name)},SAVE_FILE)}})}
   setContentView(ScrollView(this).apply{addView(box)})
+ }
+ private fun openRun(){
+  val root=File(filesDir,"workspace/working/SN-BBC-TEST-00001")
+  if(root.exists()){TestPanel.show(this){showMain()};return}
+  AlertDialog.Builder(this).setTitle("Runtime acceptance fixture").setMessage("Install an isolated local test Coin that sets move_step=2?")
+   .setNegativeButton("SKIP"){_,_->TestPanel.show(this){showMain()}}
+   .setPositiveButton("INSTALL"){_,_->
+    root.mkdirs();val artifact=File(root,"runtime-config.json")
+    artifact.writeText("""{"build_by_coin_runtime":{"kind":"runtime_config","seed":25,"tick_rate":30,"move_step":2}}""")
+    val md=java.security.MessageDigest.getInstance("SHA-256");val sha=md.digest(artifact.readBytes()).joinToString(""){"%02x".format(it)}
+    val coin=org.json.JSONObject().put("schema","a25.test.coin.v0.1").put("coin_id","SN-BBC-TEST-00001")
+     .put("current",org.json.JSONObject().put("name",artifact.name).put("sha256",sha).put("bytes",artifact.length()))
+    File(root,"SN-BBC-TEST-00001.coin.json").writeText(coin.toString(2))
+    File(root,"active-version.json").writeText(org.json.JSONObject().put("schema","a25.active-version.v0.1").put("master_coin_id","SN-BBC-TEST-00001").put("version_id","BASELINE").toString(2))
+    Toast.makeText(this,"Fixture installed: move_step 2",Toast.LENGTH_SHORT).show();TestPanel.show(this){showMain()}
+   }.show()
  }
  private fun showFiles(){
  val fs=store.listOriginals()+workingFiles()

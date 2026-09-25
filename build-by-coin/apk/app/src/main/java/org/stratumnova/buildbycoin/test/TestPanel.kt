@@ -46,10 +46,11 @@ object TestPanel{
    if(runBusy){status.text="Runtime busy — preset change blocked";return@setOnClickListener}
    android.app.AlertDialog.Builder(a).setTitle("TEST TYPE | "+runtime.activePreset).setItems(presetNames){_,which->
     val preset=presetNames[which];runtime.applyRoomPreset(preset,true);game.invalidate()
-    val profile=FixtureProfiles.forPreset(preset);status.text="ROOM "+preset+" | "+profile.camera+" | "+profile.objective+" | player "+(runtime.room.tile(runtime.state.playerX,runtime.state.playerY)?.spaceCode?:"?")
+    val profile=FixtureProfiles.forPreset(preset);fixtureLabel.text="  Fixture: "+runtime.activePreset;status.text="ROOM "+preset+" | "+profile.camera+" | "+profile.objective+" | player "+(runtime.room.tile(runtime.state.playerX,runtime.state.playerY)?.spaceCode?:"?")
    }.show()
   }},LinearLayout.LayoutParams(0,-2,1f))
-  presets.addView(TextView(a).apply{setTextColor(Color.WHITE);text="  Fixture: "+runtime.activePreset;gravity=android.view.Gravity.CENTER_VERTICAL},LinearLayout.LayoutParams(0,-2,2f))
+  val fixtureLabel=TextView(a).apply{setTextColor(Color.WHITE);text="  Fixture: "+runtime.activePreset;gravity=android.view.Gravity.CENTER_VERTICAL}
+  presets.addView(fixtureLabel,LinearLayout.LayoutParams(0,-2,2f))
   runPanel.addView(presets)
   val environmentTools=LinearLayout(a)
   environmentTools.addView(button("ENVIRONMENT").apply{setOnClickListener{
@@ -87,6 +88,43 @@ object TestPanel{
    }.show()
   }},LinearLayout.LayoutParams(0,-2,1f))
   runPanel.addView(tileTools)
+  val stationBox=LinearLayout(a).apply{orientation=LinearLayout.VERTICAL}
+  val stationMode=button("STATION MODE: "+runtime.market.craftMode.name)
+  stationMode.setOnClickListener{
+   runtime.market.craftMode=if(runtime.market.craftMode==CraftRandomMode.SEEDED)CraftRandomMode.RANDOM else CraftRandomMode.SEEDED
+   stationMode.text="STATION MODE: "+runtime.market.craftMode.name
+   status.text="CRAFT STATION | "+runtime.market.craftMode.name+(if(runtime.market.craftMode==CraftRandomMode.SEEDED)" | seed "+runtime.market.craftSeed else "")
+  }
+  stationBox.addView(stationMode)
+  val stationSlots=LinearLayout(a)
+  fun refreshSlotButton(b:Button,slot:Int){b.text="SLOT "+(slot+1)+": "+(runtime.market.craftSlots[slot]?:"EMPTY")}
+  repeat(3){slot->
+   val b=button("")
+   refreshSlotButton(b,slot)
+   b.setOnClickListener{
+    val ids=arrayOf("EMPTY")+runtime.market.stationInputs.keys.toTypedArray()
+    android.app.AlertDialog.Builder(a).setTitle("CRAFT SLOT "+(slot+1)).setItems(ids){_,which->
+     runtime.market.setCraftSlot(slot,if(which==0)null else ids[which]);refreshSlotButton(b,slot)
+     status.text="CRAFT SLOT "+(slot+1)+" | "+(runtime.market.craftSlots[slot]?:"EMPTY")
+    }.show()
+   }
+   stationSlots.addView(b,LinearLayout.LayoutParams(0,-2,1f))
+  }
+  stationBox.addView(stationSlots)
+  val stationActions=LinearLayout(a)
+  stationActions.addView(button("RANDOM CRAFT").apply{setOnClickListener{
+   if(runtime.activePreset!="MARKET"){status.text="Craft station available in MARKET fixture";return@setOnClickListener}
+   val out=runtime.market.randomCraft()
+   status.text=if(out==null)"CRAFT STATION | load 1-3 slots" else out.name+" | "+out.kind+" | value "+out.marketValue+" | buy "+out.marketBuysFor+" | sell "+out.marketSellsFor+" | "+out.mode
+  }},LinearLayout.LayoutParams(0,-2,2f))
+  stationActions.addView(button("SELL LAST").apply{setOnClickListener{
+   val i=runtime.market.generatedInventory.lastIndex
+   val item=runtime.market.generatedInventory.getOrNull(i)
+   val ok=i>=0&&runtime.market.sellGeneratedToMarket(i)
+   status.text=if(ok)"MARKET BOUGHT "+item!!.name+" for "+item.marketBuysFor+" | credits "+runtime.market.marketCredits else "NO GENERATED ITEM TO SELL"
+  }},LinearLayout.LayoutParams(0,-2,1f))
+  stationBox.addView(stationActions)
+  runPanel.addView(stationBox)
   val marketControls=LinearLayout(a)
   fun marketSummary():String{
    val stock=runtime.market.stalls.values.joinToString("  "){it.id.replace("STALL-","S")+":"+it.stock}

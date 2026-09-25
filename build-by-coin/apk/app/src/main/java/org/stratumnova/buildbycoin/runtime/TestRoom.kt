@@ -72,6 +72,19 @@ class TestRoom(val width:Int=25,val height:Int=25){
                 paintRect(11,15,13,16,TileKind.BLOCKED)
                 paintRect(12,21,12,23,TileKind.PATH)
             }
+            "FARMING" -> { resetBaseRoom(); paintRect(3,4,20,18,TileKind.DIRT); paintRect(4,5,9,17,TileKind.GRASS); paintRect(14,5,19,17,TileKind.GRASS); paintRect(11,4,12,23,TileKind.PATH) }
+            "ECOLOGY" -> { resetBaseRoom(); paintRect(2,3,22,21,TileKind.GRASS); addPond(3,5,8,10); paintRect(12,3,13,22,TileKind.PATH) }
+            "NPC" -> { resetBaseRoom(); paintRect(4,5,20,6,TileKind.PATH); paintRect(4,12,20,13,TileKind.PATH); paintRect(4,19,20,20,TileKind.PATH); add("NPC-1",6,5,"npc"); add("NPC-2",12,12,"npc"); add("NPC-3",18,19,"npc") }
+            "RESOURCE" -> { resetBaseRoom(); paintRect(3,4,8,9,TileKind.DIRT); paintRect(16,4,21,9,TileKind.GRASS); paintRect(3,15,8,20,TileKind.SAND); addPond(16,15,21,20); paintRect(11,3,13,23,TileKind.PATH) }
+            "PUZZLE" -> { resetBaseRoom(); paintRect(4,4,20,20,TileKind.PATH); paintRect(6,6,18,18,TileKind.FLOOR); paintRect(9,6,10,15,TileKind.BLOCKED); paintRect(14,9,15,18,TileKind.BLOCKED) }
+            "RACING" -> { resetBaseRoom(); paintRect(3,3,21,21,TileKind.PATH); paintRect(6,6,18,18,TileKind.FLOOR); paintRect(11,18,13,23,TileKind.PATH) }
+            "SHOOTING" -> { resetBaseRoom(); paintRect(3,3,21,20,TileKind.FLOOR); paintRect(5,5,5,19,TileKind.BLOCKED); paintRect(19,5,19,19,TileKind.BLOCKED); add("TARGET-1",8,5,"target"); add("TARGET-2",12,5,"target"); add("TARGET-3",16,5,"target") }
+            "PLATFORMER" -> { resetBaseRoom(); paintRect(2,20,22,20,TileKind.PATH); paintRect(5,16,9,16,TileKind.BLOCKED); paintRect(12,12,16,12,TileKind.BLOCKED); paintRect(18,8,21,8,TileKind.BLOCKED) }
+            "TOPDOWN" -> { resetBaseRoom(); paintRect(4,4,20,20,TileKind.FLOOR); paintRect(8,8,16,8,TileKind.BLOCKED); paintRect(8,16,16,16,TileKind.BLOCKED); paintRect(12,9,12,15,TileKind.PATH) }
+            "VOCABULARY" -> { resetBaseRoom(); paintRect(5,5,19,19,TileKind.PATH); add("PROMPT",12,7,"prompt"); add("ANSWER-A",8,15,"answer"); add("ANSWER-B",12,15,"answer"); add("ANSWER-C",16,15,"answer") }
+            "DATA" -> resetBaseRoom()
+            "SPRITE" -> { resetBaseRoom(); add("SPRITE-TEST",12,12,"sprite-test") }
+            "WEATHER" -> { resetBaseRoom(); paintRect(2,2,22,22,TileKind.GRASS); paintRect(12,3,12,23,TileKind.PATH) }
             "SANDBOX" -> resetBaseRoom()
         }
     }

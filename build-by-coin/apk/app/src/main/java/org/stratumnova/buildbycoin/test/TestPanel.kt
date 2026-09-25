@@ -41,16 +41,26 @@ object TestPanel{
   val environmentTools=LinearLayout(a)
   environmentTools.addView(button("ENVIRONMENT").apply{setOnClickListener{
    val scopes=TestScope.values();val weathers=WeatherKind.values();val phases=DayPhase.values()
-   val items=arrayOf("Scope: "+runtime.environment.scope.name,"Weather: "+runtime.environment.weather.name,"Day/Night: "+runtime.environment.dayPhase.name,"Cycle: "+if(runtime.environment.cycleEnabled)"ON" else "OFF","HUD name: "+runtime.environment.hudName)
+   val items=arrayOf("Scope: "+runtime.environment.scope.name,"Weather: "+runtime.environment.weather.name,"Day/Night: "+runtime.environment.dayPhase.name,"Cycle: "+if(runtime.environment.cycleEnabled)"ON" else "OFF")
    android.app.AlertDialog.Builder(a).setTitle("Test environment").setItems(items){_,which->
     when(which){
      0->runtime.setEnvironment(scopes[(runtime.environment.scope.ordinal+1)%scopes.size],runtime.environment.targetId,runtime.environment.weather,runtime.environment.dayPhase,runtime.environment.cycleEnabled,runtime.environment.hudName)
      1->runtime.setEnvironment(runtime.environment.scope,runtime.environment.targetId,weathers[(runtime.environment.weather.ordinal+1)%weathers.size],runtime.environment.dayPhase,runtime.environment.cycleEnabled,runtime.environment.hudName)
      2->runtime.setEnvironment(runtime.environment.scope,runtime.environment.targetId,runtime.environment.weather,phases[(runtime.environment.dayPhase.ordinal+1)%phases.size],runtime.environment.cycleEnabled,runtime.environment.hudName)
      3->runtime.setEnvironment(runtime.environment.scope,runtime.environment.targetId,runtime.environment.weather,runtime.environment.dayPhase,!runtime.environment.cycleEnabled,runtime.environment.hudName)
-     4->{val input=EditText(a).apply{setText(runtime.environment.hudName);hint="HUD name"};android.app.AlertDialog.Builder(a).setTitle("HUD name").setView(input).setPositiveButton("SAVE"){_,_->runtime.environment.hudName=input.text.toString().ifBlank{"HUD"};game.invalidate()}.setNegativeButton("CANCEL",null).show()}
     };game.invalidate();status.text="ENV | "+runtime.environment.scope+" | "+runtime.environment.weather+" | "+runtime.environment.dayPhase
    }.show()
+  }},LinearLayout.LayoutParams(0,-2,1f))
+  environmentTools.addView(button("EDIT").apply{setOnClickListener{
+   val box=LinearLayout(a).apply{orientation=LinearLayout.VERTICAL;setPadding(24,8,24,8)}
+   val hud=EditText(a).apply{setText(runtime.environment.hudName);hint="HUD name"}
+   val target=EditText(a).apply{setText(runtime.environment.targetId);hint="Target / group name"}
+   box.addView(TextView(a).apply{text="HUD / DISPLAY";setTextColor(cyan)});box.addView(hud)
+   box.addView(TextView(a).apply{text="ENVIRONMENT TARGET";setTextColor(cyan)});box.addView(target)
+   android.app.AlertDialog.Builder(a).setTitle("EDIT SETTINGS").setView(box).setPositiveButton("SAVE"){_,_->
+    runtime.setEnvironment(runtime.environment.scope,target.text.toString(),runtime.environment.weather,runtime.environment.dayPhase,runtime.environment.cycleEnabled,hud.text.toString())
+    game.invalidate();status.text="EDIT saved | HUD "+runtime.environment.hudName+" | target "+runtime.environment.targetId
+   }.setNegativeButton("CANCEL",null).show()
   }},LinearLayout.LayoutParams(0,-2,1f))
   root.addView(environmentTools)
   val tileTools=LinearLayout(a)

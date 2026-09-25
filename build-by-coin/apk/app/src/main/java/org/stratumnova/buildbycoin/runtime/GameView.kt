@@ -28,8 +28,9 @@ class GameView(context:Context,val runtime:RuntimeCore=RuntimeCore()):View(conte
   marker("VENDOR-1","V1",0);marker("VENDOR-2","V2",0);marker("VENDOR-3","V3",0)
   marker("CUSTOMER-1","C1",1);marker("CUSTOMER-2","C2",1);marker("CUSTOMER-3","C3",1)
   paint.color=Color.rgb(0,213,255);paint.style=Paint.Style.FILL;c.drawCircle(ox+(runtime.state.playerX+.5f)*size,oy+(runtime.state.playerY+.5f)*size,size*.22f,paint)
-  paint.color=Color.WHITE;paint.textSize=24f;c.drawText("25x25 TEST ROOM | "+runtime.stateHash().take(8),16f,30f,paint)
-  c.drawText("CREDIT "+runtime.market.marketCredits+" | tile "+(room.tile(runtime.state.playerX,runtime.state.playerY)?.spaceCode?:"?"),16f,56f,paint)
+  paint.color=Color.WHITE;paint.textSize=24f;c.drawText(runtime.environment.hudName+" | "+runtime.activePreset+" | "+runtime.stateHash().take(8),16f,30f,paint)
+  val detail=if(runtime.activePreset=="MARKET")"CREDIT "+runtime.market.marketCredits+" | " else ""
+  c.drawText(detail+runtime.environment.weather.name+" / "+runtime.environment.dayPhase.name+" | "+runtime.environment.scope.name+" | tile "+(room.tile(runtime.state.playerX,runtime.state.playerY)?.spaceCode?:"?"),16f,56f,paint)
  }
  override fun onTouchEvent(e:MotionEvent):Boolean{if(e.action!=MotionEvent.ACTION_DOWN)return true;val dx=e.x-width/2f;val dy=e.y-height/2f;val cmd=if(kotlin.math.abs(dx)>kotlin.math.abs(dy)){if(dx<0)Command.LEFT else Command.RIGHT}else{if(dy<0)Command.UP else Command.DOWN};runtime.command(cmd);onCommand?.invoke(cmd);invalidate();return true}
 }

@@ -6,7 +6,7 @@ import java.io.File
 
 enum class SpaceKind { FLOOR, WALL, PATH, WATER, OBJECT, SPAWN, EXIT }
 
-data class CellSpace(val x:Int,val y:Int,var kind:SpaceKind=SpaceKind.FLOOR,var label:String=""){
+data class CellSpace(val x:Int,val y:Int,var kind:SpaceKind=SpaceKind.FLOOR,var label:String="",var assetPath:String="",var targetCell:String=""){
  val code:String get()="S-X"+x.toString().padStart(2,'0')+"-Y"+y.toString().padStart(2,'0')
 }
 
@@ -31,11 +31,11 @@ class WorldStore(private val root:File){
   val f=File(cellsDir,id+".json");if(!f.exists())return WorldCell(id,id,0,0,MutableList(81){i->CellSpace(i%9,i/9)})
   val j=JSONObject(f.readText());val a=j.optJSONArray("spaces")?:JSONArray()
   val spaces=MutableList(81){i->CellSpace(i%9,i/9)}
-  for(i in 0 until a.length()){val s=a.optJSONObject(i)?:continue;val x=s.optInt("x");val y=s.optInt("y");val index=y*9+x;if(index in spaces.indices)spaces[index]=CellSpace(x,y,runCatching{SpaceKind.valueOf(s.optString("kind","FLOOR"))}.getOrDefault(SpaceKind.FLOOR),s.optString("label",""))}
+  for(i in 0 until a.length()){val s=a.optJSONObject(i)?:continue;val x=s.optInt("x");val y=s.optInt("y");val index=y*9+x;if(index in spaces.indices)spaces[index]=CellSpace(x,y,runCatching{SpaceKind.valueOf(s.optString("kind","FLOOR"))}.getOrDefault(SpaceKind.FLOOR),s.optString("label",""),s.optString("asset_path",""),s.optString("target_cell",""))}
   return WorldCell(id,j.optString("name",id),j.optInt("world_x"),j.optInt("world_y"),spaces)
  }
  fun saveCell(c:WorldCell){
-  val a=JSONArray();c.spaces.forEach{s->a.put(JSONObject().put("code",s.code).put("x",s.x).put("y",s.y).put("kind",s.kind.name).put("label",s.label))}
+  val a=JSONArray();c.spaces.forEach{s->a.put(JSONObject().put("code",s.code).put("x",s.x).put("y",s.y).put("kind",s.kind.name).put("label",s.label).put("asset_path",s.assetPath).put("target_cell",s.targetCell))}
   File(cellsDir,c.id+".json").writeText(JSONObject().put("schema","stratumnova.cell.v0.1").put("id",c.id).put("name",c.name).put("world_x",c.worldX).put("world_y",c.worldY).put("width",9).put("height",9).put("spaces",a).toString(2))
  }
  fun addCell():WorldCell{

@@ -26,14 +26,33 @@ object TestPanel{
   val top=LinearLayout(a);top.addView(button("←  Back").apply{setOnClickListener{onBack()}},LinearLayout.LayoutParams(0,-2,1f))
   val status=TextView(a).apply{setTextColor(Color.WHITE);textSize=15f;text="PLAY / AUTO / WATCH — same RuntimeCore | active artifacts "+assembly.size+" | adapters "+contributions.size+" | step "+moveStep+" | tick "+tickRate+(if(assemblyResult.errors.isNotEmpty()) " | REJECTED "+assemblyResult.errors.size else "")+(if(conflicts.isNotEmpty()) " | CONFIG CONFLICT "+conflicts.joinToString(",") else "")};top.addView(status,LinearLayout.LayoutParams(0,-2,3f));root.addView(top)
   val game=GameView(a,runtime);game.onCommand={cmd->playInputs+=cmd;status.text="PLAY | inputs "+playInputs.size+" | tick "+runtime.clock.tick};root.addView(game,LinearLayout.LayoutParams(-1,0,1f))
+  val sessionControls=LinearLayout(a)
+  sessionControls.addView(button("RESET").apply{setOnClickListener{if(!runBusy){runtime.resetSession();game.invalidate();status.text="Session reset | "+runtime.activePreset}}},LinearLayout.LayoutParams(0,-2,1f))
+  sessionControls.addView(button("KEEP RUNNING").apply{setOnClickListener{status.text="State retained | tick "+runtime.clock.tick+" | "+runtime.activePreset}},LinearLayout.LayoutParams(0,-2,1f))
+  root.addView(sessionControls)
   val presets=LinearLayout(a)
   listOf("MARKET","FISHING","COMBAT","SANDBOX").forEach{preset->
    presets.addView(button(preset).apply{setOnClickListener{
     if(runBusy)status.text="Runtime busy — preset change blocked"
-    else{runtime.applyRoomPreset(preset);game.invalidate();status.text="ROOM "+preset+" | 25x25 | player "+(runtime.room.tile(runtime.state.playerX,runtime.state.playerY)?.spaceCode?:"?")}
+    else{runtime.applyRoomPreset(preset,true);game.invalidate();status.text="ROOM "+preset+" | 25x25 | player "+(runtime.room.tile(runtime.state.playerX,runtime.state.playerY)?.spaceCode?:"?")}
    }},LinearLayout.LayoutParams(0,-2,1f))
   }
   root.addView(presets)
+  val environmentTools=LinearLayout(a)
+  environmentTools.addView(button("ENVIRONMENT").apply{setOnClickListener{
+   val scopes=TestScope.values();val weathers=WeatherKind.values();val phases=DayPhase.values()
+   val items=arrayOf("Scope: "+runtime.environment.scope.name,"Weather: "+runtime.environment.weather.name,"Day/Night: "+runtime.environment.dayPhase.name,"Cycle: "+if(runtime.environment.cycleEnabled)"ON" else "OFF","HUD name: "+runtime.environment.hudName)
+   android.app.AlertDialog.Builder(a).setTitle("Test environment").setItems(items){_,which->
+    when(which){
+     0->runtime.setEnvironment(scopes[(runtime.environment.scope.ordinal+1)%scopes.size],runtime.environment.targetId,runtime.environment.weather,runtime.environment.dayPhase,runtime.environment.cycleEnabled,runtime.environment.hudName)
+     1->runtime.setEnvironment(runtime.environment.scope,runtime.environment.targetId,weathers[(runtime.environment.weather.ordinal+1)%weathers.size],runtime.environment.dayPhase,runtime.environment.cycleEnabled,runtime.environment.hudName)
+     2->runtime.setEnvironment(runtime.environment.scope,runtime.environment.targetId,runtime.environment.weather,phases[(runtime.environment.dayPhase.ordinal+1)%phases.size],runtime.environment.cycleEnabled,runtime.environment.hudName)
+     3->runtime.setEnvironment(runtime.environment.scope,runtime.environment.targetId,runtime.environment.weather,runtime.environment.dayPhase,!runtime.environment.cycleEnabled,runtime.environment.hudName)
+     4->{val input=EditText(a).apply{setText(runtime.environment.hudName);hint="HUD name"};android.app.AlertDialog.Builder(a).setTitle("HUD name").setView(input).setPositiveButton("SAVE"){_,_->runtime.environment.hudName=input.text.toString().ifBlank{"HUD"};game.invalidate()}.setNegativeButton("CANCEL",null).show()}
+    };game.invalidate();status.text="ENV | "+runtime.environment.scope+" | "+runtime.environment.weather+" | "+runtime.environment.dayPhase
+   }.show()
+  }},LinearLayout.LayoutParams(0,-2,1f))
+  root.addView(environmentTools)
   val tileTools=LinearLayout(a)
   tileTools.addView(button("SPACE CODES").apply{setOnClickListener{game.showSpaceCodes=!game.showSpaceCodes;game.invalidate();status.text="Space codes "+if(game.showSpaceCodes)"ON" else "OFF"}},LinearLayout.LayoutParams(0,-2,1f))
   tileTools.addView(button("TILE HERE").apply{setOnClickListener{val t=runtime.room.tile(runtime.state.playerX,runtime.state.playerY);status.text=(t?.spaceCode?:"UNRESOLVED")+" | "+(t?.kind?.name?:"UNRESOLVED")}},LinearLayout.LayoutParams(0,-2,1f))

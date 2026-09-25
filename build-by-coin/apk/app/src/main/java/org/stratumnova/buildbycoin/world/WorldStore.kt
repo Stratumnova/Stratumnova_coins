@@ -54,6 +54,12 @@ class WorldStore(private val root:File){
    saveCell(cell)
   }
  }
+ fun replaceFromDraft(cellsX:Int,cellsY:Int,kindAt:(Int,Int,Int,Int)->SpaceKind){
+  cellsDir.listFiles()?.filter{it.isFile&&it.extension=="json"}?.forEach{it.delete()}
+  val arr=JSONArray();var n=1
+  for(wy in 0 until cellsY)for(wx in 0 until cellsX){val id="CELL-"+n.toString().padStart(3,'0');val spaces=MutableList(81){i->CellSpace(i%9,i/9,kindAt(wx,wy,i%9,i/9))};val cell=WorldCell(id,"Cell "+n,wx,wy,spaces);saveCell(cell);arr.put(JSONObject().put("id",id).put("name",cell.name).put("x",wx).put("y",wy));n++}
+  saveWorld(JSONObject().put("schema","stratumnova.world.v0.1").put("name","Imported World").put("active_cell","CELL-001").put("cells",arr));connectAdjacent()
+ }
  fun addCell():WorldCell{
   val j=world();val a=j.optJSONArray("cells")?:JSONArray();val n=a.length()+1;val id="CELL-"+n.toString().padStart(3,'0')
   val cell=WorldCell(id,"Cell "+n,n-1,0,MutableList(81){i->CellSpace(i%9,i/9)});saveCell(cell)

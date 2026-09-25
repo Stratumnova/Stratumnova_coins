@@ -34,15 +34,15 @@ class MainActivity:Activity(){
  fun panelBg(stroke:Boolean=true)=GradientDrawable().apply{setColor(panel);cornerRadius=12f;if(stroke)setStroke(2,cyan)}
  fun label(t:String,s:Float=16f)=TextView(this).apply{text=t;textSize=s;setTextColor(Color.WHITE);setPadding(8,8,8,8)}
  fun tab(n:String)=Button(this).apply{text=n;textSize=12f;setTextColor(Color.WHITE);background=panelBg();setPadding(4,2,4,2)}
- root.addView(label("◈  BUILD BY COIN",24f).apply{setTextColor(cyan);setTypeface(typeface,Typeface.BOLD)});root.addView(label("COIN TESTING & GAME BUILDER",12f).apply{setTextColor(cyan)});val tabs=LinearLayout(this)
- listOf("Terminal","Files","Assets","Build","Run","Export").forEach { n ->
+ root.addView(label("◈  STRATUMNOVA WORKSPACE",24f).apply{setTextColor(cyan);setTypeface(typeface,Typeface.BOLD)});root.addView(label("MOBILE GAME + WORLD BUILDER  •  ANDROID / WEB",12f).apply{setTextColor(cyan)});val tabs=LinearLayout(this)
+ listOf("Terminal","Files","Assets","Build by Coin","Run","Export").forEach { n ->
   val button=tab(n).apply { setOnClickListener {
-   when(n){"Terminal"->showMain();"Files"->showFiles();"Assets"->showAssets();"Build"->showBuild();"Run"->openRun();"Export"->showExport()}
+   when(n){"Terminal"->showMain();"Files"->showFiles();"Assets"->showAssets();"Build by Coin"->showBuild();"Run"->openRun();"Export"->showExport()}
   }}
   tabs.addView(button,LinearLayout.LayoutParams(0,56,1f))
  }
  root.addView(tabs)
- terminal=label("> Welcome to Build by Coin\n> Ready for intake\n> Tap FILE, ZIP or ASSET\n> Runtime: v0.1.0\n> Originals remain untouched.",15f).apply{setTextColor(Color.rgb(0,255,150));typeface=Typeface.MONOSPACE;background=panelBg()};root.addView(terminal,LinearLayout.LayoutParams(-1,0,1f));root.addView(label("INTAKE",18f));val intake=LinearLayout(this)
+ terminal=label("> STRATUMNOVA WORKSPACE\n> Terminal is the shared project bus.\n> Commands: files | assets | scene | run | tools | export\n> World model: Project -> World -> 9x9 Cells -> Objects\n> Runtime: v0.1.0",15f).apply{setTextColor(Color.rgb(0,255,150));typeface=Typeface.MONOSPACE;background=panelBg()};root.addView(terminal,LinearLayout.LayoutParams(-1,0,1f));root.addView(label("INTAKE",18f));val intake=LinearLayout(this)
  fun b(n:String,c:Int,t:String):Button { return Button(this).apply { text=n; setOnClickListener { pick(c,t) } } }
  intake.addView(b("FILE",OPEN_FILE,"*/*"),LinearLayout.LayoutParams(0,-2,1f))
  intake.addView(b("ZIP",OPEN_ZIP,"application/zip"),LinearLayout.LayoutParams(0,-2,1f))
@@ -243,20 +243,9 @@ private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
   setContentView(ScrollView(this).apply{addView(box)})
  }
  private fun openRun(){
-  val root=File(filesDir,"workspace/working/SN-BBC-TEST-00001")
-  if(root.exists()){TestPanel.show(this){showMain()};return}
-  AlertDialog.Builder(this).setTitle("Runtime acceptance fixture").setMessage("Install an isolated local test Coin that sets move_step=2?")
-   .setNegativeButton("SKIP"){_,_->TestPanel.show(this){showMain()}}
-   .setPositiveButton("INSTALL"){_,_->
-    root.mkdirs();val artifact=File(root,"runtime-config.json")
-    artifact.writeText("""{"build_by_coin_runtime":{"kind":"runtime_config","seed":25,"tick_rate":30,"move_step":2}}""")
-    val md=java.security.MessageDigest.getInstance("SHA-256");val sha=md.digest(artifact.readBytes()).joinToString(""){"%02x".format(it)}
-    val coin=org.json.JSONObject().put("schema","a25.test.coin.v0.1").put("coin_id","SN-BBC-TEST-00001")
-     .put("current",org.json.JSONObject().put("name",artifact.name).put("sha256",sha).put("bytes",artifact.length()))
-    File(root,"SN-BBC-TEST-00001.coin.json").writeText(coin.toString(2))
-    File(root,"active-version.json").writeText(org.json.JSONObject().put("schema","a25.active-version.v0.1").put("master_coin_id","SN-BBC-TEST-00001").put("version_id","BASELINE").toString(2))
-    Toast.makeText(this,"Fixture installed: move_step 2",Toast.LENGTH_SHORT).show();TestPanel.show(this){showMain()}
-   }.show()
+  // RUN is now a clean entry point. Acceptance fixtures belong under developer tools,
+  // never as a startup interruption.
+  TestPanel.show(this){showMain()}
  }
  private fun showFiles(){
  val fs=store.listOriginals()+workingFiles()

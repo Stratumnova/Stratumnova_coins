@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.os.Bundle
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.BitmapFactory
 import android.graphics.drawable.GradientDrawable
 import android.content.Intent
 import android.widget.*
@@ -22,6 +23,7 @@ import org.stratumnova.buildbycoin.terminal.WorkspaceTerminal
 import org.stratumnova.buildbycoin.world.WorldStore
 import org.stratumnova.buildbycoin.world.WorldEditor
 import org.stratumnova.buildbycoin.world.WorldRunView
+import org.stratumnova.buildbycoin.world.MapImportSetup
 import java.io.File
 class MainActivity:Activity(){
  private val UI_BG=Color.rgb(2,7,13);private val UI_PANEL=Color.rgb(5,18,29);private val UI_CYAN=Color.rgb(0,213,255);private val UI_MUTED=Color.rgb(150,180,195)
@@ -32,7 +34,7 @@ class MainActivity:Activity(){
  private fun uiCard(title:String,detail:String)=Button(this).apply{text=title+"\\n"+detail;textSize=13f;gravity=android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL;setTextColor(Color.WHITE);background=uiBg();setPadding(16,10,16,10);isAllCaps=false}
 
  private lateinit var terminal:TextView;private lateinit var commandLine:EditText;private lateinit var workspaceTerminal:WorkspaceTerminal;private lateinit var worldStore:WorldStore;private lateinit var store:WorkspaceStore;private var mainView:android.view.View?=null;private var lastCartridge:org.stratumnova.buildbycoin.workspace.CartridgeResult?=null
- private val OPEN_FILE=1001;private val OPEN_ZIP=1002;private val OPEN_ASSET=1003;private val OPEN_VERSION=1004;private val SAVE_ZIP=2001;private val SAVE_FILE=2002;private val SAVE_TEST=2003;private val SAVE_COIN=2004;private val SAVE_TEMPLATE=2005;private var pendingExport:File?=null;private var pendingExportRoot:File?=null;private var pendingVersionCoinId:String?=null;private var pendingVersionContainer:File?=null;private var pendingVersionId:String="UNRESOLVED";private var pendingParentVersion:String="UNRESOLVED"
+ private val OPEN_FILE=1001;private val OPEN_ZIP=1002;private val OPEN_ASSET=1003;private val OPEN_VERSION=1004;private val OPEN_MAP=1005;private val SAVE_ZIP=2001;private val SAVE_FILE=2002;private val SAVE_TEST=2003;private val SAVE_COIN=2004;private val SAVE_TEMPLATE=2005;private var pendingExport:File?=null;private var pendingExportRoot:File?=null;private var pendingVersionCoinId:String?=null;private var pendingVersionContainer:File?=null;private var pendingVersionId:String="UNRESOLVED";private var pendingParentVersion:String="UNRESOLVED"
  override fun onCreate(state:Bundle?){super.onCreate(state);store=WorkspaceStore(this);workspaceTerminal=WorkspaceTerminal(File(filesDir,"workspace"));worldStore=WorldStore(File(filesDir,"workspace"));val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
  val cyan=Color.rgb(0,190,255);val panel=Color.rgb(5,18,29)
  fun panelBg(stroke:Boolean=true)=GradientDrawable().apply{setColor(panel);cornerRadius=12f;if(stroke)setStroke(2,cyan)}
@@ -51,6 +53,7 @@ class MainActivity:Activity(){
  intake.addView(b("FILE",OPEN_FILE,"*/*"),LinearLayout.LayoutParams(0,-2,1f))
  intake.addView(b("ZIP",OPEN_ZIP,"application/zip"),LinearLayout.LayoutParams(0,-2,1f))
  intake.addView(b("ASSET",OPEN_ASSET,"*/*"),LinearLayout.LayoutParams(0,-2,1f))
+ intake.addView(b("MAP",OPEN_MAP,"image/*"),LinearLayout.LayoutParams(0,-2,1f))
  root.addView(intake)
  root.addView(label("Single files for quick intake; ZIP for cartridges and large sets.",14f))
  mainView=root;setContentView(root)
@@ -65,7 +68,7 @@ class MainActivity:Activity(){
   WorldEditor.show(this,worldStore,AssetBrowser.index(workingFiles()).map{it.file},{showMain()},{showMain();commandLine.requestFocus()})
  }
  private fun pick(c:Int,t:String)=startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply{addCategory(Intent.CATEGORY_OPENABLE);type=t},c)
- override fun onActivityResult(r:Int,rc:Int,data:Intent?){super.onActivityResult(r,rc,data);if(rc!=RESULT_OK)return;val uri=data?.data?:return;try{if(r==SAVE_ZIP){Exporter.projectZip(this,File(filesDir,"workspace"),uri);terminal.text="> PROJECT ZIP EXPORTED";return};if(r==SAVE_TEST){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> TEST PACKAGE EXPORTED";return};if(r==SAVE_COIN){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> COIN CONTAINER EXPORTED";return};if(r==SAVE_TEMPLATE){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> TEMPLATE EXPORTED";return};if(r==SAVE_FILE){pendingExport?.let{Exporter.singleFile(this,it,uri)};terminal.text="> SINGLE FILE EXPORTED";return};if(r==OPEN_VERSION){
+ override fun onActivityResult(r:Int,rc:Int,data:Intent?){super.onActivityResult(r,rc,data);if(rc!=RESULT_OK)return;val uri=data?.data?:return;try{if(r==OPEN_MAP){val bitmap=contentResolver.openInputStream(uri)?.use{BitmapFactory.decodeStream(it)}?:throw IllegalStateException("Map image could not be decoded");MapImportSetup.show(this,bitmap,worldStore){showScene()};return};if(r==SAVE_ZIP){Exporter.projectZip(this,File(filesDir,"workspace"),uri);terminal.text="> PROJECT ZIP EXPORTED";return};if(r==SAVE_TEST){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> TEST PACKAGE EXPORTED";return};if(r==SAVE_COIN){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> COIN CONTAINER EXPORTED";return};if(r==SAVE_TEMPLATE){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> TEMPLATE EXPORTED";return};if(r==SAVE_FILE){pendingExport?.let{Exporter.singleFile(this,it,uri)};terminal.text="> SINGLE FILE EXPORTED";return};if(r==OPEN_VERSION){
  val coinId=pendingVersionCoinId?:return
  val container=pendingVersionContainer?:return
  val scanner=IntakeScanner(this);val entry=scanner.scanSingle(uri)

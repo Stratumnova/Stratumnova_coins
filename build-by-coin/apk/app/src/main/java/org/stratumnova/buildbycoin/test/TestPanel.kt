@@ -66,6 +66,16 @@ object TestPanel{
    }},LinearLayout.LayoutParams(0,-2,1f))
   }
   root.addView(saleControls)
+  val npcControls=LinearLayout(a)
+  npcControls.addView(button("NPC STEP").apply{setOnClickListener{
+   if(runBusy)status.text="Runtime busy — NPC step blocked"
+   else{val action=runtime.marketAutoStep();game.invalidate();status.text="NPC STEP | "+action+" | credits "+runtime.market.marketCredits}
+  }},LinearLayout.LayoutParams(0,-2,1f))
+  npcControls.addView(button("MARKET ×6").apply{setOnClickListener{
+   if(runBusy)status.text="Runtime busy — market cycle blocked"
+   else{val actions=mutableListOf<String>();repeat(6){actions+=runtime.marketAutoStep()};game.invalidate();status.text="MARKET ×6 | credits "+runtime.market.marketCredits+" | "+actions.last()}
+  }},LinearLayout.LayoutParams(0,-2,1f))
+  root.addView(npcControls)
   val controls=LinearLayout(a)
   controls.addView(button("PLAY").apply{setOnClickListener{if(assemblyResult.errors.isNotEmpty()){status.text="PLAY blocked — assembly verification failed: "+assemblyResult.errors.joinToString(",")}else if(conflicts.isNotEmpty()){status.text="PLAY blocked — runtime_config conflict: "+conflicts.joinToString(",")}else if(!runBusy){playInputs.clear();playStart=runtime.stateHash();playStartEvents=runtime.bus.all().size;status.text="PLAY armed — touch game to move"}}},LinearLayout.LayoutParams(0,-2,1f))
   controls.addView(button("SAVE").apply{setOnClickListener{if(assemblyResult.errors.isNotEmpty()||conflicts.isNotEmpty()){status.text="SAVE blocked — invalid assembly";return@setOnClickListener};val r=TestRun(RunMode.PLAY,runtime.seed,runtime.tickRate,playInputs.map{it.name},playStart,runtime.stateHash(),runtime.bus.all().drop(playStartEvents),contributions,assembly);val d=EvidenceWriter.write(File(a.filesDir,"workspace/evidence"),r);status.text="PLAY saved | "+playInputs.size+" inputs | "+d.name}},LinearLayout.LayoutParams(0,-2,1f))

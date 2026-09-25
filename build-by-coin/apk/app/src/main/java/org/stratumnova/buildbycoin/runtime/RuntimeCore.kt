@@ -15,6 +15,22 @@ class RuntimeCore(val seed:Long=25L,val tickRate:Int=30,val moveStep:Int=1){
  fun applyRoomPreset(name:String){room.applyPreset(name);state.playerX=12;state.playerY=20;bus.emit(GameEvent(clock.tick,"ROOM_PRESET",name.uppercase()))}
  fun craft(stallId:String):Boolean{val ok=market.craft(stallId);bus.emit(GameEvent(clock.tick,if(ok)"CRAFT_COMPLETED" else "CRAFT_REJECTED",stallId));return ok}
  fun sell(stallId:String,customerId:String):Boolean{val ok=market.sell(stallId,customerId);bus.emit(GameEvent(clock.tick,if(ok)"SALE_COMPLETED" else "SALE_REJECTED",stallId+"|"+customerId));return ok}
+ fun marketAutoStep():String{
+  val pairs=listOf("STALL-1" to "CUSTOMER-1","STALL-2" to "CUSTOMER-2","STALL-3" to "CUSTOMER-3")
+  val pair=pairs[(clock.tick.toInt()%pairs.size)]
+  val stall=market.stalls[pair.first]?:return "UNRESOLVED"
+  val action=if(stall.stock<1){if(craft(pair.first))"CRAFT" else "CRAFT_REJECTED"}else{if(sell(pair.first,pair.second))"SALE" else "SALE_REJECTED"}
+  val customer=room.entities[pair.second]
+  val target=room.entities[pair.first]
+  if(customer!=null&&target!=null){
+   room.tile(customer.x,customer.y)?.occupiedBy=null
+   val tx=target.x;val ty=(target.y+3).coerceAtMost(room.height-2)
+   customer.x=tx;customer.y=ty;room.tile(tx,ty)?.occupiedBy=customer.id
+   bus.emit(GameEvent(clock.tick,"NPC_ACTIVITY",customer.id+"|"+action+"|"+(room.tile(tx,ty)?.spaceCode?:"UNRESOLVED")))
+  }
+  clock.step();state.ticks=clock.tick
+  return action+" "+pair.first+" "+pair.second
+ }
  fun stateHash():String{val tileState=room.tiles.flatMap{it.asList()}.joinToString(";"){it.spaceCode+":"+it.kind+":"+(it.occupiedBy?:"")+":"+(it.assetRef?:"")}
   val entityState=room.entities.values.joinToString(";"){it.id+":"+it.x+","+it.y+":"+(it.assetRef?:"")}
   val economy=market.marketCredits.toString()+"|"+market.customerCredits+"|"+market.bins+"|"+market.stalls.mapValues{it.value.stock}

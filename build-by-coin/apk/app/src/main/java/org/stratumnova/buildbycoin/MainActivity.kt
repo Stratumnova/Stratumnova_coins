@@ -21,6 +21,7 @@ import org.stratumnova.buildbycoin.assets.AssetPreview
 import org.stratumnova.buildbycoin.terminal.WorkspaceTerminal
 import org.stratumnova.buildbycoin.world.WorldStore
 import org.stratumnova.buildbycoin.world.WorldEditor
+import org.stratumnova.buildbycoin.world.WorldRunView
 import java.io.File
 class MainActivity:Activity(){
  private val UI_BG=Color.rgb(2,7,13);private val UI_PANEL=Color.rgb(5,18,29);private val UI_CYAN=Color.rgb(0,213,255);private val UI_MUTED=Color.rgb(150,180,195)
@@ -255,9 +256,14 @@ private fun showCoin(file:File,x:org.stratumnova.buildbycoin.coin.CoinSummary){
   setContentView(ScrollView(this).apply{addView(box)})
  }
  private fun openRun(){
-  // RUN is now a clean entry point. Acceptance fixtures belong under developer tools,
-  // never as a startup interruption.
-  TestPanel.show(this){showMain()}
+  val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(10,10,10,10);setBackgroundColor(UI_BG)}
+  val nav=LinearLayout(this)
+  nav.addView(uiButton("← Back").apply{setOnClickListener{showMain()}},LinearLayout.LayoutParams(0,-2,1f))
+  nav.addView(uiButton("BUILD").apply{setOnClickListener{showScene()}},LinearLayout.LayoutParams(0,-2,1f))
+  nav.addView(uiButton(">_ Terminal").apply{setOnClickListener{showMain();commandLine.requestFocus()}},LinearLayout.LayoutParams(0,-2,1f));root.addView(nav)
+  val status=uiMeta("LIVE WORLD • swipe/tap toward movement direction");root.addView(status)
+  val game=WorldRunView(this,worldStore);game.onState={status.text="LIVE WORLD • "+it};root.addView(game,LinearLayout.LayoutParams(-1,0,1f))
+  setContentView(root)
  }
  private fun showFiles(){
  val fs=store.listOriginals()+workingFiles()

@@ -1,20 +1,20 @@
 package org.stratumnova.buildbycoin.world
 import android.app.Activity
 import android.graphics.Bitmap
-import android.graphics.Color
+import android.graphics.Color\nimport android.app.AlertDialog
 import android.widget.*
 object MapImportSetup{
  fun show(a:Activity,bitmap:Bitmap,store:WorldStore,onCancel:()->Unit){
   val root=LinearLayout(a).apply{orientation=LinearLayout.VERTICAL;setPadding(18,18,18,18);setBackgroundColor(Color.rgb(2,7,13))}
   root.addView(TextView(a).apply{text="MAP IMPORT";textSize=22f;setTextColor(Color.CYAN)})
-  root.addView(TextView(a).apply{text="Set the coded map size. The image is sampled into this grid, then opens the correction editor before any World data is replaced.";setTextColor(Color.LTGRAY);setPadding(0,8,0,14)})
+  root.addView(TextView(a).apply{text="Set grid size, crop/alignment, and color mapping. Conversion still opens the correction editor before World data changes.";setTextColor(Color.LTGRAY);setPadding(0,8,0,14)})
   val cols=EditText(a).apply{hint="Columns";setText("32");inputType=2;setTextColor(Color.WHITE)}
   val rows=EditText(a).apply{hint="Rows";setText("32");inputType=2;setTextColor(Color.WHITE)}
-  root.addView(cols);root.addView(rows)
+  val crop=EditText(a).apply{hint="Crop L,T,R,B %";setText("0,0,100,100");setTextColor(Color.WHITE)}\n  root.addView(cols);root.addView(rows);root.addView(crop)\n  val legend=MapImporter.defaultLegend()\n  root.addView(Button(a).apply{text="COLOR LEGEND";setOnClickListener{val labels=legend.map{it.kind.name}.toTypedArray();AlertDialog.Builder(a).setTitle("Current color mappings").setItems(labels){_,i->val kinds=SpaceKind.values().map{it.name}.toTypedArray();AlertDialog.Builder(a).setTitle("Mapping "+(i+1)).setItems(kinds){_,k->legend[i].kind=SpaceKind.values()[k]}.show()}.show()}})
   val preview=ImageView(a).apply{setImageBitmap(bitmap);adjustViewBounds=true;scaleType=ImageView.ScaleType.FIT_CENTER};root.addView(preview,LinearLayout.LayoutParams(-1,0,1f))
   val actions=LinearLayout(a)
   actions.addView(Button(a).apply{text="CANCEL";setOnClickListener{onCancel()}},LinearLayout.LayoutParams(0,-2,1f))
-  actions.addView(Button(a).apply{text="CONVERT → CORRECT";setOnClickListener{val w=cols.text.toString().toIntOrNull()?.coerceIn(1,128)?:32;val h=rows.text.toString().toIntOrNull()?.coerceIn(1,128)?:32;val draft=MapImporter.fromBitmap(bitmap,w,h);MapCorrectionEditor.show(a,draft,store,onCancel)}},LinearLayout.LayoutParams(0,-2,2f))
+  actions.addView(Button(a).apply{text="CONVERT → CORRECT";setOnClickListener{val w=cols.text.toString().toIntOrNull()?.coerceIn(1,128)?:32;val h=rows.text.toString().toIntOrNull()?.coerceIn(1,128)?:32;val q=crop.text.toString().split(",").mapNotNull{it.trim().toFloatOrNull()?.div(100f)};val v=if(q.size==4)q else listOf(0f,0f,1f,1f);val draft=MapImporter.fromBitmap(bitmap,w,h,legend,v[0],v[1],v[2],v[3]);MapCorrectionEditor.show(a,draft,store,onCancel)}},LinearLayout.LayoutParams(0,-2,2f))
   root.addView(actions);a.setContentView(root)
  }
 }

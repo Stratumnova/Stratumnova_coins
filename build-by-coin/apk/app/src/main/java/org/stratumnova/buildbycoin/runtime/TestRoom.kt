@@ -17,7 +17,7 @@ class TestRoom(val width:Int=25,val height:Int=25){
     val tiles=Array(height){y->Array(width){x->TestTile(x,y)}}
     val entities=linkedMapOf<String,RoomEntity>()
 
-    init{ resetBaseRoom() }
+    init{ resetBaseRoom(); applyMarketFixture() }
 
     fun resetBaseRoom(){
         entities.clear()
@@ -28,8 +28,12 @@ class TestRoom(val width:Int=25,val height:Int=25){
             t.occupiedBy=null
             t.assetRef=null
         }
-        tiles[23][12].kind=TileKind.PATH
+        // One neutral entrance exists in every fixture. Everything else belongs to the selected fixture.
         tiles[24][12].kind=TileKind.PATH
+    }
+
+    private fun applyMarketFixture(){
+        tiles[23][12].kind=TileKind.PATH
         for(y in 8..23) tiles[y][12].kind=TileKind.PATH
         for(x in 5..19) tiles[8][x].kind=TileKind.PATH
         add("STALL-1",5,5,"stall-1");add("STALL-2",12,5,"stall-2");add("STALL-3",19,5,"stall-3")
@@ -58,25 +62,17 @@ class TestRoom(val width:Int=25,val height:Int=25){
     // The room is a universal test substrate. Presets mutate tiles; they do not create a separate runtime.
     fun applyPreset(name:String){
         when(name.uppercase()){
-            "MARKET" -> resetBaseRoom()
-            "FISHING" -> { resetBaseRoom(); addPond(2,12,9,20); paintRect(10,12,10,20,TileKind.PATH) }
+            "MARKET" -> { resetBaseRoom(); applyMarketFixture() }
+            "FISHING" -> { resetBaseRoom(); addPond(2,12,9,20); paintRect(10,12,10,20,TileKind.PATH); paintRect(11,20,12,23,TileKind.PATH) }
             "COMBAT" -> {
                 resetBaseRoom()
-                // Clear market actors while retaining stable 25x25 space addressing.
-                entities.keys.toList().forEach{ id ->
-                    entities.remove(id)?.let{ tile(it.x,it.y)?.occupiedBy=null }
-                }
                 paintRect(4,4,20,20,TileKind.FLOOR)
                 paintRect(7,7,8,8,TileKind.BLOCKED)
                 paintRect(16,7,17,8,TileKind.BLOCKED)
                 paintRect(11,15,13,16,TileKind.BLOCKED)
+                paintRect(12,21,12,23,TileKind.PATH)
             }
-            "SANDBOX" -> {
-                resetBaseRoom()
-                entities.keys.toList().forEach{ id ->
-                    entities.remove(id)?.let{ tile(it.x,it.y)?.occupiedBy=null }
-                }
-            }
+            "SANDBOX" -> resetBaseRoom()
         }
     }
 }

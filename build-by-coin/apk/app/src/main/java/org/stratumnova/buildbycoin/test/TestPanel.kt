@@ -41,12 +41,15 @@ object TestPanel{
   sessionControls.addView(button("KEEP RUNNING").apply{setOnClickListener{status.text="State retained | tick "+runtime.clock.tick+" | "+runtime.activePreset}},LinearLayout.LayoutParams(0,-2,1f))
   runPanel.addView(sessionControls)
   val presets=LinearLayout(a)
-  listOf("MARKET","FISHING","COMBAT","SANDBOX").forEach{preset->
-   presets.addView(button(preset).apply{setOnClickListener{
-    if(runBusy)status.text="Runtime busy — preset change blocked"
-    else{runtime.applyRoomPreset(preset,true);game.invalidate();status.text="ROOM "+preset+" | 25x25 | player "+(runtime.room.tile(runtime.state.playerX,runtime.state.playerY)?.spaceCode?:"?")}
-   }},LinearLayout.LayoutParams(0,-2,1f))
-  }
+  val presetNames=arrayOf("MARKET","FISHING","COMBAT","FARMING","ECOLOGY","NPC","RESOURCE","PUZZLE","RACING","SHOOTING","PLATFORMER","TOPDOWN","VOCABULARY","DATA","SPRITE","WEATHER","SANDBOX")
+  presets.addView(button("TEST TYPE").apply{setOnClickListener{
+   if(runBusy){status.text="Runtime busy — preset change blocked";return@setOnClickListener}
+   android.app.AlertDialog.Builder(a).setTitle("TEST TYPE | "+runtime.activePreset).setItems(presetNames){_,which->
+    val preset=presetNames[which];runtime.applyRoomPreset(preset,true);game.invalidate()
+    status.text="ROOM "+preset+" | 25x25 | player "+(runtime.room.tile(runtime.state.playerX,runtime.state.playerY)?.spaceCode?:"?")
+   }.show()
+  }},LinearLayout.LayoutParams(0,-2,1f))
+  presets.addView(TextView(a).apply{setTextColor(Color.WHITE);text="  Fixture: "+runtime.activePreset;gravity=android.view.Gravity.CENTER_VERTICAL},LinearLayout.LayoutParams(0,-2,2f))
   runPanel.addView(presets)
   val environmentTools=LinearLayout(a)
   environmentTools.addView(button("ENVIRONMENT").apply{setOnClickListener{

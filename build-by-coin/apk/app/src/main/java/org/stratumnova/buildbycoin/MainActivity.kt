@@ -18,6 +18,7 @@ import org.stratumnova.buildbycoin.test.TestPanel
 import org.stratumnova.buildbycoin.export.Exporter
 import org.stratumnova.buildbycoin.assets.AssetBrowser
 import org.stratumnova.buildbycoin.assets.AssetPreview
+import org.stratumnova.buildbycoin.terminal.WorkspaceTerminal
 import java.io.File
 class MainActivity:Activity(){
  private val UI_BG=Color.rgb(2,7,13);private val UI_PANEL=Color.rgb(5,18,29);private val UI_CYAN=Color.rgb(0,213,255);private val UI_MUTED=Color.rgb(150,180,195)
@@ -27,9 +28,9 @@ class MainActivity:Activity(){
  private fun uiMeta(textValue:String)=TextView(this).apply{text=textValue;textSize=13f;setTextColor(UI_MUTED);setPadding(8,4,8,10)}
  private fun uiCard(title:String,detail:String)=Button(this).apply{text=title+"\\n"+detail;textSize=13f;gravity=android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL;setTextColor(Color.WHITE);background=uiBg();setPadding(16,10,16,10);isAllCaps=false}
 
- private lateinit var terminal:TextView;private lateinit var store:WorkspaceStore;private var mainView:android.view.View?=null;private var lastCartridge:org.stratumnova.buildbycoin.workspace.CartridgeResult?=null
+ private lateinit var terminal:TextView;private lateinit var commandLine:EditText;private lateinit var workspaceTerminal:WorkspaceTerminal;private lateinit var store:WorkspaceStore;private var mainView:android.view.View?=null;private var lastCartridge:org.stratumnova.buildbycoin.workspace.CartridgeResult?=null
  private val OPEN_FILE=1001;private val OPEN_ZIP=1002;private val OPEN_ASSET=1003;private val OPEN_VERSION=1004;private val SAVE_ZIP=2001;private val SAVE_FILE=2002;private val SAVE_TEST=2003;private val SAVE_COIN=2004;private val SAVE_TEMPLATE=2005;private var pendingExport:File?=null;private var pendingExportRoot:File?=null;private var pendingVersionCoinId:String?=null;private var pendingVersionContainer:File?=null;private var pendingVersionId:String="UNRESOLVED";private var pendingParentVersion:String="UNRESOLVED"
- override fun onCreate(state:Bundle?){super.onCreate(state);store=WorkspaceStore(this);val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
+ override fun onCreate(state:Bundle?){super.onCreate(state);store=WorkspaceStore(this);workspaceTerminal=WorkspaceTerminal(File(filesDir,"workspace"));val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(16,16,16,16);setBackgroundColor(Color.rgb(2,7,13))}
  val cyan=Color.rgb(0,190,255);val panel=Color.rgb(5,18,29)
  fun panelBg(stroke:Boolean=true)=GradientDrawable().apply{setColor(panel);cornerRadius=12f;if(stroke)setStroke(2,cyan)}
  fun label(t:String,s:Float=16f)=TextView(this).apply{text=t;textSize=s;setTextColor(Color.WHITE);setPadding(8,8,8,8)}
@@ -42,7 +43,7 @@ class MainActivity:Activity(){
   tabs.addView(button,LinearLayout.LayoutParams(0,56,1f))
  }
  root.addView(tabs)
- terminal=label("> STRATUMNOVA WORKSPACE\n> Terminal is the shared project bus.\n> Commands: files | assets | scene | run | tools | export\n> World model: Project -> World -> 9x9 Cells -> Objects\n> Runtime: v0.1.0",15f).apply{setTextColor(Color.rgb(0,255,150));typeface=Typeface.MONOSPACE;background=panelBg()};root.addView(terminal,LinearLayout.LayoutParams(-1,0,1f));root.addView(label("INTAKE",18f));val intake=LinearLayout(this)
+ terminal=label("> STRATUMNOVA WORKSPACE\n> Terminal is the shared project bus.\n> Type help for commands.\n> Build reports: report | errors\n> Runtime: v0.1.0",15f).apply{setTextColor(Color.rgb(0,255,150));typeface=Typeface.MONOSPACE;background=panelBg()};root.addView(terminal,LinearLayout.LayoutParams(-1,0,1f));val commandRow=LinearLayout(this);commandLine=EditText(this).apply{hint="> command";setTextColor(Color.WHITE);setHintTextColor(Color.GRAY);singleLine=true;typeface=Typeface.MONOSPACE};commandRow.addView(commandLine,LinearLayout.LayoutParams(0,-2,1f));commandRow.addView(uiButton("RUN").apply{setOnClickListener{runTerminalCommand()}},LinearLayout.LayoutParams(-2,-2));root.addView(commandRow);commandLine.setOnEditorActionListener{_,_,_->runTerminalCommand();true};root.addView(label("INTAKE",18f));val intake=LinearLayout(this)
  fun b(n:String,c:Int,t:String):Button { return Button(this).apply { text=n; setOnClickListener { pick(c,t) } } }
  intake.addView(b("FILE",OPEN_FILE,"*/*"),LinearLayout.LayoutParams(0,-2,1f))
  intake.addView(b("ZIP",OPEN_ZIP,"application/zip"),LinearLayout.LayoutParams(0,-2,1f))
@@ -50,6 +51,12 @@ class MainActivity:Activity(){
  root.addView(intake)
  root.addView(label("Single files for quick intake; ZIP for cartridges and large sets.",14f))
  mainView=root;setContentView(root)
+ }
+ private fun runTerminalCommand(){
+  val raw=commandLine.text.toString();if(raw.isBlank())return
+  val result=workspaceTerminal.execute(raw);commandLine.setText("")
+  terminal.text=if(result.text.isBlank())">" else "> "+raw+"\n"+result.text
+  when(result.action){"files"->showFiles();"assets"->showAssets();"run"->openRun();"tools"->showBuild();"export"->showExport();"clear"->terminal.text=""}
  }
  private fun pick(c:Int,t:String)=startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply{addCategory(Intent.CATEGORY_OPENABLE);type=t},c)
  override fun onActivityResult(r:Int,rc:Int,data:Intent?){super.onActivityResult(r,rc,data);if(rc!=RESULT_OK)return;val uri=data?.data?:return;try{if(r==SAVE_ZIP){Exporter.projectZip(this,File(filesDir,"workspace"),uri);terminal.text="> PROJECT ZIP EXPORTED";return};if(r==SAVE_TEST){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> TEST PACKAGE EXPORTED";return};if(r==SAVE_COIN){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> COIN CONTAINER EXPORTED";return};if(r==SAVE_TEMPLATE){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> TEMPLATE EXPORTED";return};if(r==SAVE_FILE){pendingExport?.let{Exporter.singleFile(this,it,uri)};terminal.text="> SINGLE FILE EXPORTED";return};if(r==OPEN_VERSION){

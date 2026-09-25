@@ -10,7 +10,7 @@ data class CellSpace(val x:Int,val y:Int,var kind:SpaceKind=SpaceKind.FLOOR,var 
  val code:String get()="S-X"+x.toString().padStart(2,'0')+"-Y"+y.toString().padStart(2,'0')
 }
 
-data class WorldCell(val id:String,val name:String,val worldX:Int,val worldY:Int,val spaces:MutableList<CellSpace>)
+data class WorldCell(val id:String,val name:String,var worldX:Int,var worldY:Int,val spaces:MutableList<CellSpace>)
 
 class WorldStore(private val root:File){
  private val worldDir=File(root,"world").apply{mkdirs()}
@@ -37,6 +37,22 @@ class WorldStore(private val root:File){
  fun saveCell(c:WorldCell){
   val a=JSONArray();c.spaces.forEach{s->a.put(JSONObject().put("code",s.code).put("x",s.x).put("y",s.y).put("kind",s.kind.name).put("label",s.label).put("asset_path",s.assetPath).put("target_cell",s.targetCell))}
   File(cellsDir,c.id+".json").writeText(JSONObject().put("schema","stratumnova.cell.v0.1").put("id",c.id).put("name",c.name).put("world_x",c.worldX).put("world_y",c.worldY).put("width",9).put("height",9).put("spaces",a).toString(2))
+ }
+
+ fun moveCell(id:String,x:Int,y:Int):Boolean{
+  val j=world();val a=j.optJSONArray("cells")?:return false
+  for(i in 0 until a.length()){val item=a.optJSONObject(i)?:continue;if(item.optString("id")==id){item.put("x",x).put("y",y);val cell=loadCell(id);cell.worldX=x;cell.worldY=y;saveCell(cell);saveWorld(j);return true}}
+  return false
+ }
+ fun cellAt(x:Int,y:Int):String?=cells().firstOrNull{it.optInt("x")==x&&it.optInt("y")==y}?.optString("id")
+ fun connectAdjacent(){
+  val all=cells()
+  all.forEach{meta->
+   val id=meta.optString("id");val cx=meta.optInt("x");val cy=meta.optInt("y");val cell=loadCell(id)
+   val links=listOf(Triple(8,4,cellAt(cx+1,cy)),Triple(0,4,cellAt(cx-1,cy)),Triple(4,0,cellAt(cx,cy-1)),Triple(4,8,cellAt(cx,cy+1)))
+   links.forEach{(x,y,target)->val s=cell.spaces[y*9+x];if(target!=null){s.kind=SpaceKind.EXIT;s.targetCell=target;if(s.label.isBlank())s.label="EXIT"}else if(s.label=="EXIT"&&s.targetCell.isNotBlank()){s.kind=SpaceKind.FLOOR;s.targetCell="";s.label=""}}
+   saveCell(cell)
+  }
  }
  fun addCell():WorldCell{
   val j=world();val a=j.optJSONArray("cells")?:JSONArray();val n=a.length()+1;val id="CELL-"+n.toString().padStart(3,'0')

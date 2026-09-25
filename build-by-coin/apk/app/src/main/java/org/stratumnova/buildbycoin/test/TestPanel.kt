@@ -41,6 +41,7 @@ object TestPanel{
   sessionControls.addView(button("KEEP RUNNING").apply{setOnClickListener{status.text="State retained | tick "+runtime.clock.tick+" | "+runtime.activePreset}},LinearLayout.LayoutParams(0,-2,1f))
   runPanel.addView(sessionControls)
   val presets=LinearLayout(a)
+  val fixtureLabel=TextView(a).apply{setTextColor(Color.WHITE);text="  Fixture: "+runtime.activePreset;gravity=android.view.Gravity.CENTER_VERTICAL}
   val presetNames=arrayOf("MARKET","FISHING","COMBAT","FARMING","ECOLOGY","NPC","RESOURCE","PUZZLE","RACING","RACING-8","SHOOTING","PLATFORMER","PLATFORMER-L","PLATFORMER-R","TOPDOWN","VOCABULARY","DATA","SPRITE","WEATHER","SANDBOX")
   presets.addView(button("TEST TYPE").apply{setOnClickListener{
    if(runBusy){status.text="Runtime busy — preset change blocked";return@setOnClickListener}
@@ -49,7 +50,6 @@ object TestPanel{
     val profile=FixtureProfiles.forPreset(preset);fixtureLabel.text="  Fixture: "+runtime.activePreset;status.text="ROOM "+preset+" | "+profile.camera+" | "+profile.objective+" | player "+(runtime.room.tile(runtime.state.playerX,runtime.state.playerY)?.spaceCode?:"?")
    }.show()
   }},LinearLayout.LayoutParams(0,-2,1f))
-  val fixtureLabel=TextView(a).apply{setTextColor(Color.WHITE);text="  Fixture: "+runtime.activePreset;gravity=android.view.Gravity.CENTER_VERTICAL}
   presets.addView(fixtureLabel,LinearLayout.LayoutParams(0,-2,2f))
   runPanel.addView(presets)
   val environmentTools=LinearLayout(a)

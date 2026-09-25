@@ -47,8 +47,9 @@ data class Recipe(val item:String,val parts:List<String>,val saleValue:Int)
 data class StallState(val id:String,val item:String,var stock:Int=0)
 
 class MarketTestState{
-    var marketCredits=0
-    val customerCredits=linkedMapOf("CUSTOMER-1" to 30,"CUSTOMER-2" to 30,"CUSTOMER-3" to 30)
+    var marketCredits=100
+    var playerCredits=100
+    val customerCredits=linkedMapOf("CUSTOMER-1" to 150,"CUSTOMER-2" to 150,"CUSTOMER-3" to 150)
     val recipes=linkedMapOf(
         "ITEM-1" to Recipe("ITEM-1",listOf("PART-A","PART-B"),10),
         "ITEM-2" to Recipe("ITEM-2",listOf("PART-C","PART-D"),12),
@@ -130,7 +131,9 @@ class MarketTestState{
 
     fun sellGeneratedToMarket(index:Int):Boolean{
         val item=generatedInventory.getOrNull(index)?:return false
-        marketCredits+=item.marketBuysFor
+        if(marketCredits<item.marketBuysFor)return false
+        marketCredits-=item.marketBuysFor
+        playerCredits+=item.marketBuysFor
         generatedInventory.removeAt(index)
         return true
     }
@@ -140,6 +143,15 @@ class MarketTestState{
         val wallet=customerCredits[customerId]?:return false
         if(wallet<item.marketSellsFor)return false
         customerCredits[customerId]=wallet-item.marketSellsFor
+        marketCredits+=item.marketSellsFor
+        generatedInventory.removeAt(index)
+        return true
+    }
+
+    fun playerBuyGenerated(index:Int):Boolean{
+        val item=generatedInventory.getOrNull(index)?:return false
+        if(playerCredits<item.marketSellsFor)return false
+        playerCredits-=item.marketSellsFor
         marketCredits+=item.marketSellsFor
         generatedInventory.removeAt(index)
         return true

@@ -61,7 +61,7 @@ class MainActivity:Activity(){
   when(result.action){"files"->showFiles();"assets"->showAssets();"scene"->showScene();"run"->openRun();"tools"->showBuild();"export"->showExport();"clear"->terminal.text=""}
  }
  private fun showScene(){
-  WorldEditor.show(this,worldStore,{showMain()},{showMain();commandLine.requestFocus()})
+  WorldEditor.show(this,worldStore,AssetBrowser.index(workingFiles()).map{it.file},{showMain()},{showMain();commandLine.requestFocus()})
  }
  private fun pick(c:Int,t:String)=startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply{addCategory(Intent.CATEGORY_OPENABLE);type=t},c)
  override fun onActivityResult(r:Int,rc:Int,data:Intent?){super.onActivityResult(r,rc,data);if(rc!=RESULT_OK)return;val uri=data?.data?:return;try{if(r==SAVE_ZIP){Exporter.projectZip(this,File(filesDir,"workspace"),uri);terminal.text="> PROJECT ZIP EXPORTED";return};if(r==SAVE_TEST){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> TEST PACKAGE EXPORTED";return};if(r==SAVE_COIN){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> COIN CONTAINER EXPORTED";return};if(r==SAVE_TEMPLATE){pendingExportRoot?.let{Exporter.projectZip(this,it,uri)};terminal.text="> TEMPLATE EXPORTED";return};if(r==SAVE_FILE){pendingExport?.let{Exporter.singleFile(this,it,uri)};terminal.text="> SINGLE FILE EXPORTED";return};if(r==OPEN_VERSION){

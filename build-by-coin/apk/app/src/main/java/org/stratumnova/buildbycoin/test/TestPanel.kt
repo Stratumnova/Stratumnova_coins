@@ -26,10 +26,20 @@ object TestPanel{
   val top=LinearLayout(a);top.addView(button("←  Back").apply{setOnClickListener{onBack()}},LinearLayout.LayoutParams(0,-2,1f))
   val status=TextView(a).apply{setTextColor(Color.WHITE);textSize=15f;text="PLAY / AUTO / WATCH — same RuntimeCore | active artifacts "+assembly.size+" | adapters "+contributions.size+" | step "+moveStep+" | tick "+tickRate+(if(assemblyResult.errors.isNotEmpty()) " | REJECTED "+assemblyResult.errors.size else "")+(if(conflicts.isNotEmpty()) " | CONFIG CONFLICT "+conflicts.joinToString(",") else "")};top.addView(status,LinearLayout.LayoutParams(0,-2,3f));root.addView(top)
   val game=GameView(a,runtime);game.onCommand={cmd->playInputs+=cmd;status.text="PLAY | inputs "+playInputs.size+" | tick "+runtime.clock.tick};root.addView(game,LinearLayout.LayoutParams(-1,0,1f))
+  val runHeader=button("RUN CONTROLS ▾")
+  val runPanel=LinearLayout(a).apply{orientation=LinearLayout.VERTICAL}
+  var runControlsOpen=true
+  runHeader.setOnClickListener{
+   runControlsOpen=!runControlsOpen
+   runPanel.visibility=if(runControlsOpen)android.view.View.VISIBLE else android.view.View.GONE
+   runHeader.text=if(runControlsOpen)"RUN CONTROLS ▾" else "RUN CONTROLS ▸"
+  }
+  root.addView(runHeader)
+  root.addView(runPanel)
   val sessionControls=LinearLayout(a)
   sessionControls.addView(button("RESET").apply{setOnClickListener{if(!runBusy){runtime.resetSession();game.invalidate();status.text="Session reset | "+runtime.activePreset}}},LinearLayout.LayoutParams(0,-2,1f))
   sessionControls.addView(button("KEEP RUNNING").apply{setOnClickListener{status.text="State retained | tick "+runtime.clock.tick+" | "+runtime.activePreset}},LinearLayout.LayoutParams(0,-2,1f))
-  root.addView(sessionControls)
+  runPanel.addView(sessionControls)
   val presets=LinearLayout(a)
   listOf("MARKET","FISHING","COMBAT","SANDBOX").forEach{preset->
    presets.addView(button(preset).apply{setOnClickListener{
@@ -37,7 +47,7 @@ object TestPanel{
     else{runtime.applyRoomPreset(preset,true);game.invalidate();status.text="ROOM "+preset+" | 25x25 | player "+(runtime.room.tile(runtime.state.playerX,runtime.state.playerY)?.spaceCode?:"?")}
    }},LinearLayout.LayoutParams(0,-2,1f))
   }
-  root.addView(presets)
+  runPanel.addView(presets)
   val environmentTools=LinearLayout(a)
   environmentTools.addView(button("ENVIRONMENT").apply{setOnClickListener{
    val scopes=TestScope.values();val weathers=WeatherKind.values();val phases=DayPhase.values()
@@ -62,7 +72,7 @@ object TestPanel{
     game.invalidate();status.text="EDIT saved | HUD "+runtime.environment.hudName+" | target "+runtime.environment.targetId
    }.setNegativeButton("CANCEL",null).show()
   }},LinearLayout.LayoutParams(0,-2,1f))
-  root.addView(environmentTools)
+  runPanel.addView(environmentTools)
   val tileTools=LinearLayout(a)
   tileTools.addView(button("SPACE CODES").apply{setOnClickListener{game.showSpaceCodes=!game.showSpaceCodes;game.invalidate();status.text="Space codes "+if(game.showSpaceCodes)"ON" else "OFF"}},LinearLayout.LayoutParams(0,-2,1f))
   tileTools.addView(button("TILE HERE").apply{setOnClickListener{val t=runtime.room.tile(runtime.state.playerX,runtime.state.playerY);status.text=(t?.spaceCode?:"UNRESOLVED")+" | "+(t?.kind?.name?:"UNRESOLVED")}},LinearLayout.LayoutParams(0,-2,1f))
@@ -73,7 +83,7 @@ object TestPanel{
     runtime.setTile(t.spaceCode,kinds[which]);game.invalidate();status.text=t.spaceCode+" → "+kinds[which].name
    }.show()
   }},LinearLayout.LayoutParams(0,-2,1f))
-  root.addView(tileTools)
+  runPanel.addView(tileTools)
   val marketControls=LinearLayout(a)
   fun marketSummary():String{
    val stock=runtime.market.stalls.values.joinToString("  "){it.id.replace("STALL-","S")+":"+it.stock}
@@ -85,7 +95,7 @@ object TestPanel{
     status.text=(if(ok)"CRAFT OK | " else "CRAFT REJECTED | ")+stallId+" | "+marketSummary()
    }},LinearLayout.LayoutParams(0,-2,1f))
   }
-  root.addView(marketControls)
+  runPanel.addView(marketControls)
   val saleControls=LinearLayout(a)
   listOf("STALL-1","STALL-2","STALL-3").forEachIndexed{i,stallId->
    val customerId="CUSTOMER-"+(i+1)
@@ -94,7 +104,7 @@ object TestPanel{
     status.text=(if(ok)"SALE OK | " else "SALE REJECTED | ")+stallId+" → "+customerId+" | "+marketSummary()
    }},LinearLayout.LayoutParams(0,-2,1f))
   }
-  root.addView(saleControls)
+  runPanel.addView(saleControls)
   val npcControls=LinearLayout(a)
   npcControls.addView(button("NPC STEP").apply{setOnClickListener{
    if(runBusy)status.text="Runtime busy — NPC step blocked"
@@ -104,7 +114,7 @@ object TestPanel{
    if(runBusy)status.text="Runtime busy — market cycle blocked"
    else{val actions=mutableListOf<String>();repeat(6){actions+=runtime.marketAutoStep()};game.invalidate();status.text="MARKET ×6 | credits "+runtime.market.marketCredits+" | "+actions.last()}
   }},LinearLayout.LayoutParams(0,-2,1f))
-  root.addView(npcControls)
+  runPanel.addView(npcControls)
   val controls=LinearLayout(a)
   controls.addView(button("PLAY").apply{setOnClickListener{if(assemblyResult.errors.isNotEmpty()){status.text="PLAY blocked — assembly verification failed: "+assemblyResult.errors.joinToString(",")}else if(conflicts.isNotEmpty()){status.text="PLAY blocked — runtime_config conflict: "+conflicts.joinToString(",")}else if(!runBusy){playInputs.clear();playStart=runtime.stateHash();playStartEvents=runtime.bus.all().size;status.text="PLAY armed — touch game to move"}}},LinearLayout.LayoutParams(0,-2,1f))
   controls.addView(button("SAVE").apply{setOnClickListener{if(assemblyResult.errors.isNotEmpty()||conflicts.isNotEmpty()){status.text="SAVE blocked — invalid assembly";return@setOnClickListener};val r=TestRun(RunMode.PLAY,runtime.seed,runtime.tickRate,playInputs.map{it.name},playStart,runtime.stateHash(),runtime.bus.all().drop(playStartEvents),contributions,assembly);val d=EvidenceWriter.write(File(a.filesDir,"workspace/evidence"),r);status.text="PLAY saved | "+playInputs.size+" inputs | "+d.name}},LinearLayout.LayoutParams(0,-2,1f))

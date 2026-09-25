@@ -111,19 +111,39 @@ object TestPanel{
    stationSlots.addView(b,LinearLayout.LayoutParams(0,-2,1f))
   }
   stationBox.addView(stationSlots)
+  val seedTools=LinearLayout(a)
+  val seedInput=EditText(a).apply{setText(runtime.market.craftSeed.toString());hint="Seed";inputType=android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_SIGNED;setTextColor(Color.WHITE);setHintTextColor(Color.GRAY)}
+  seedTools.addView(seedInput,LinearLayout.LayoutParams(0,-2,2f))
+  seedTools.addView(button("SET SEED").apply{setOnClickListener{
+   val value=seedInput.text.toString().toLongOrNull()
+   if(value==null)status.text="SEED REJECTED | enter an integer" else{runtime.market.craftSeed=value;status.text="CRAFT STATION | SEEDED value "+value}
+  }},LinearLayout.LayoutParams(0,-2,1f))
+  stationBox.addView(seedTools)
   val stationActions=LinearLayout(a)
   stationActions.addView(button("RANDOM CRAFT").apply{setOnClickListener{
    if(runtime.activePreset!="MARKET"){status.text="Craft station available in MARKET fixture";return@setOnClickListener}
    val out=runtime.market.randomCraft()
-   status.text=if(out==null)"CRAFT STATION | load 1-3 slots" else out.name+" | "+out.kind+" | value "+out.marketValue+" | buy "+out.marketBuysFor+" | sell "+out.marketSellsFor+" | "+out.mode
+   status.text=if(out==null)"CRAFT STATION | load 1-3 slots" else out.name+" | "+out.kind+" | value "+out.marketValue+" | market buys "+out.marketBuysFor+" | market sells "+out.marketSellsFor+" | "+out.mode+(out.seed?.let{" seed "+it}?:"")
   }},LinearLayout.LayoutParams(0,-2,2f))
   stationActions.addView(button("SELL LAST").apply{setOnClickListener{
    val i=runtime.market.generatedInventory.lastIndex
    val item=runtime.market.generatedInventory.getOrNull(i)
    val ok=i>=0&&runtime.market.sellGeneratedToMarket(i)
-   status.text=if(ok)"MARKET BOUGHT "+item!!.name+" for "+item.marketBuysFor+" | credits "+runtime.market.marketCredits else "NO GENERATED ITEM TO SELL"
+   status.text=if(ok)"PLAYER SOLD "+item!!.name+" for "+item.marketBuysFor+" | player "+runtime.market.playerCredits+" | market "+runtime.market.marketCredits else "SALE REJECTED | no item or market cannot afford it"
   }},LinearLayout.LayoutParams(0,-2,1f))
   stationBox.addView(stationActions)
+  val generatedTrade=LinearLayout(a)
+  generatedTrade.addView(button("PLAYER BUY LAST").apply{setOnClickListener{
+   val i=runtime.market.generatedInventory.lastIndex;val item=runtime.market.generatedInventory.getOrNull(i)
+   val ok=i>=0&&runtime.market.playerBuyGenerated(i)
+   status.text=if(ok)"PLAYER BOUGHT "+item!!.name+" for "+item.marketSellsFor+" | player "+runtime.market.playerCredits+" | market "+runtime.market.marketCredits else "BUY REJECTED | no item or player cannot afford it"
+  }},LinearLayout.LayoutParams(0,-2,1f))
+  generatedTrade.addView(button("NPC BUY LAST").apply{setOnClickListener{
+   val i=runtime.market.generatedInventory.lastIndex;val item=runtime.market.generatedInventory.getOrNull(i)
+   val ok=i>=0&&runtime.market.buyGeneratedFromMarket(i,"CUSTOMER-1")
+   status.text=if(ok)"C1 BOUGHT "+item!!.name+" for "+item.marketSellsFor+" | C1 "+runtime.market.customerCredits["CUSTOMER-1"]+" | market "+runtime.market.marketCredits else "NPC BUY REJECTED | no item or C1 cannot afford it"
+  }},LinearLayout.LayoutParams(0,-2,1f))
+  stationBox.addView(generatedTrade)
   runPanel.addView(stationBox)
   val marketControls=LinearLayout(a)
   fun marketSummary():String{

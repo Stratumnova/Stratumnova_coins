@@ -64,11 +64,19 @@ object WorldEditor {
  }
  private fun showWorld(activity:Activity,store:WorldStore,assets:List<File>,onBack:()->Unit,onTerminal:()->Unit){
   val root=LinearLayout(activity).apply{orientation=LinearLayout.VERTICAL;setPadding(12,12,12,12);setBackgroundColor(Color.rgb(2,7,13))}
-  val top=LinearLayout(activity);top.addView(Button(activity).apply{text="← Cell";setOnClickListener{show(activity,store,assets,onBack,onTerminal)}},LinearLayout.LayoutParams(0,-2,1f));top.addView(Button(activity).apply{text=">_ Terminal";setOnClickListener{onTerminal()}},LinearLayout.LayoutParams(0,-2,1f));root.addView(top)
-  root.addView(TextView(activity).apply{text="WORLD MAP";textSize=22f;setTextColor(Color.CYAN);setPadding(8,12,8,8)})
-  root.addView(TextView(activity).apply{text="Each block is one 9×9 Cell. Tap a Cell to edit it.";setTextColor(Color.LTGRAY);setPadding(8,0,8,12)})
-  store.cells().forEach{j->root.addView(Button(activity).apply{text=j.optString("id")+"  •  "+j.optString("name")+"\nWorld ["+j.optInt("x")+","+j.optInt("y")+"]";setOnClickListener{store.setActive(j.optString("id"));show(activity,store,assets,onBack,onTerminal)}})}
-  root.addView(Button(activity).apply{text="+ ADD 9×9 CELL";setOnClickListener{store.addCell();showWorld(activity,store,assets,onBack,onTerminal)}})
-  activity.setContentView(ScrollView(activity).apply{addView(root)})
+  val top=LinearLayout(activity)
+  top.addView(Button(activity).apply{text="← Cell";setOnClickListener{show(activity,store,assets,onBack,onTerminal)}},LinearLayout.LayoutParams(0,-2,1f))
+  top.addView(Button(activity).apply{text="ENTER WORLD";setOnClickListener{show(activity,store,assets,onBack,onTerminal,true)}},LinearLayout.LayoutParams(0,-2,1f))
+  top.addView(Button(activity).apply{text=">_ Terminal";setOnClickListener{onTerminal()}},LinearLayout.LayoutParams(0,-2,1f));root.addView(top)
+  root.addView(TextView(activity).apply{text="WORLD LAYOUT";textSize=22f;setTextColor(Color.CYAN);setPadding(8,10,8,4)})
+  root.addView(TextView(activity).apply{text="Tap a Cell to enter it. Drag a Cell to another layout position. Adjacent Cells connect automatically at their center edges.";setTextColor(Color.LTGRAY);setPadding(8,0,8,8)})
+  val map=WorldLayoutView(activity,store)
+  map.onCellOpen={id->store.setActive(id);show(activity,store,assets,onBack,onTerminal)}
+  map.onChanged={Toast.makeText(activity,"World layout saved; adjacent Cell exits updated",Toast.LENGTH_SHORT).show()}
+  root.addView(map,LinearLayout.LayoutParams(-1,0,1f))
+  val actions=LinearLayout(activity)
+  actions.addView(Button(activity).apply{text="+ ADD CELL";setOnClickListener{store.addCell();showWorld(activity,store,assets,onBack,onTerminal)}},LinearLayout.LayoutParams(0,-2,1f))
+  actions.addView(Button(activity).apply{text="CONNECT";setOnClickListener{store.connectAdjacent();Toast.makeText(activity,"Adjacent Cells connected",Toast.LENGTH_SHORT).show()}},LinearLayout.LayoutParams(0,-2,1f))
+  root.addView(actions);activity.setContentView(root)
  }
 }

@@ -23,8 +23,8 @@ class RuntimeCore(val seed:Long=25L,val tickRate:Int=30,val moveStep:Int=1){
   environment.scope=scope;environment.targetId=targetId.ifBlank{"TEST-ROOM"};environment.weather=weather;environment.dayPhase=phase;environment.cycleEnabled=cycle;environment.hudName=hudName.ifBlank{"HUD"}
   bus.emit(GameEvent(clock.tick,"ENVIRONMENT_CHANGED",scope.name+"|"+environment.targetId+"|"+weather.name+"|"+phase.name+"|cycle="+cycle))
  }
- fun craft(stallId:String):Boolean{val ok=market.craft(stallId);bus.emit(GameEvent(clock.tick,if(ok)"CRAFT_COMPLETED" else "CRAFT_REJECTED",stallId));return ok}
- fun sell(stallId:String,customerId:String):Boolean{val ok=market.sell(stallId,customerId);bus.emit(GameEvent(clock.tick,if(ok)"SALE_COMPLETED" else "SALE_REJECTED",stallId+"|"+customerId));return ok}
+ fun craft(stallId:String):Boolean{if(activePreset!="MARKET")return false;val ok=market.craft(stallId);bus.emit(GameEvent(clock.tick,if(ok)"CRAFT_COMPLETED" else "CRAFT_REJECTED",stallId));return ok}
+ fun sell(stallId:String,customerId:String):Boolean{if(activePreset!="MARKET")return false;val ok=market.sell(stallId,customerId);bus.emit(GameEvent(clock.tick,if(ok)"SALE_COMPLETED" else "SALE_REJECTED",stallId+"|"+customerId));return ok}
  fun marketAutoStep():String{
   if(activePreset!="MARKET")return "MARKET_INACTIVE"
   val pairs=listOf("STALL-1" to "CUSTOMER-1","STALL-2" to "CUSTOMER-2","STALL-3" to "CUSTOMER-3")

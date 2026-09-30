@@ -54,7 +54,23 @@ class WorldStore(private val root:File){
    saveCell(cell)
   }
  }
+ fun snapshot(reason:String="manual"):File{
+  val dir=File(worldDir,"snapshots/"+System.currentTimeMillis()).apply{mkdirs()}
+  if(manifest.isFile)manifest.copyTo(File(dir,"world.json"),overwrite=true)
+  val out=File(dir,"cells").apply{mkdirs()}
+  cellsDir.listFiles()?.filter{it.isFile&&it.extension=="json"}?.forEach{it.copyTo(File(out,it.name),overwrite=true)}
+  File(dir,"snapshot.json").writeText(JSONObject().put("schema","stratumnova.world-snapshot.v0.1").put("reason",reason).put("active_cell",activeId()).toString(2))
+  return dir
+ }
+ fun restoreSnapshot(dir:File):Boolean{
+  val sourceWorld=File(dir,"world.json");val sourceCells=File(dir,"cells");if(!sourceWorld.isFile||!sourceCells.isDirectory)return false
+  cellsDir.listFiles()?.filter{it.isFile&&it.extension=="json"}?.forEach{it.delete()}
+  sourceCells.listFiles()?.filter{it.isFile&&it.extension=="json"}?.forEach{it.copyTo(File(cellsDir,it.name),overwrite=true)}
+  sourceWorld.copyTo(manifest,overwrite=true);return true
+ }
+ fun latestSnapshot():File?=File(worldDir,"snapshots").listFiles()?.filter{it.isDirectory&&File(it,"world.json").isFile}?.maxByOrNull{it.name}
  fun replaceFromDraft(cellsX:Int,cellsY:Int,kindAt:(Int,Int,Int,Int)->SpaceKind){
+  snapshot("before-map-import")
   cellsDir.listFiles()?.filter{it.isFile&&it.extension=="json"}?.forEach{it.delete()}
   val arr=JSONArray();var n=1
   for(wy in 0 until cellsY)for(wx in 0 until cellsX){val id="CELL-"+n.toString().padStart(3,'0');val spaces=MutableList(81){i->CellSpace(i%9,i/9,kindAt(wx,wy,i%9,i/9))};val cell=WorldCell(id,"Cell "+n,wx,wy,spaces);saveCell(cell);arr.put(JSONObject().put("id",id).put("name",cell.name).put("x",wx).put("y",wy));n++}

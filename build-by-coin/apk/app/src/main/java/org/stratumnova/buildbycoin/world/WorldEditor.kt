@@ -76,6 +76,7 @@ object WorldEditor {
   root.addView(map,LinearLayout.LayoutParams(-1,0,1f))
   val actions=LinearLayout(activity)
   actions.addView(Button(activity).apply{text="+ ADD CELL";setOnClickListener{store.addCell();showWorld(activity,store,assets,onBack,onTerminal)}},LinearLayout.LayoutParams(0,-2,1f))
+  actions.addView(Button(activity).apply{text="RESTORE";setOnClickListener{val s=store.latestSnapshot();if(s!=null&&store.restoreSnapshot(s)){Toast.makeText(activity,"Previous World restored",Toast.LENGTH_SHORT).show();showWorld(activity,store,assets,onBack,onTerminal)}else Toast.makeText(activity,"No World snapshot available",Toast.LENGTH_SHORT).show()}},LinearLayout.LayoutParams(0,-2,1f))
   actions.addView(Button(activity).apply{text="CONNECT";setOnClickListener{store.connectAdjacent();Toast.makeText(activity,"Adjacent Cells connected",Toast.LENGTH_SHORT).show()}},LinearLayout.LayoutParams(0,-2,1f))
   root.addView(actions);activity.setContentView(root)
  }

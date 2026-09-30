@@ -8,7 +8,7 @@ import android.text.InputType
 import android.widget.*
 
 object MapImportSetup {
- fun show(a:Activity, bitmap:Bitmap, store:WorldStore, onCancel:()->Unit) {
+ fun show(a:Activity, bitmap:Bitmap, store:WorldStore, workspaceRoot:java.io.File, onCancel:()->Unit) {
   val root=LinearLayout(a).apply {
    orientation=LinearLayout.VERTICAL
    setPadding(18,18,18,18)
@@ -49,7 +49,10 @@ object MapImportSetup {
     val q=crop.text.toString().split(",").mapNotNull{it.trim().toFloatOrNull()?.div(100f)}
     val v=if(q.size==4) q else listOf(0f,0f,1f,1f)
     val draft=MapImporter.fromBitmap(bitmap,w,h,legend,v[0],v[1],v[2],v[3])
-    MapCorrectionEditor.show(a,draft,store,onCancel)
+    MapCorrectionEditor.show(a,draft,store){approved->
+     if(approved) MapArchive.preserve(workspaceRoot,bitmap,draft,legend,v)
+     onCancel()
+    }
    }
   },LinearLayout.LayoutParams(0,-2,2f))
   root.addView(actions)
